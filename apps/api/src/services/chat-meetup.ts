@@ -1,3 +1,5 @@
+import { checkJudgeSimulatedAdmission, judgeSimulatedRpc, type JudgeSimulatedAdmission } from "./judge-simulated-admission";
+import type { JudgeAccess } from "./judge-access";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { z } from "zod";
 import type { Database } from "../db/types";
@@ -89,6 +91,7 @@ export type ChatMeetupServiceResult = { ok: true; state: ChatMeetupState } | { o
 export type ChatMeetupProviders = {
   cafe: CafeSearchProvider;
   recordingRehearsalConfig?: ValidatedRecordingRehearsalConfig;
+  judgeAccess?: JudgeAccess;
 };
 export const defaultChatMeetupProviders: ChatMeetupProviders = { cafe: unavailableCafeSearchProvider };
 
@@ -111,11 +114,16 @@ function enumStatus(value: unknown): ChatMeetupStatus | null { return typeof val
 function safeUnavailableReason(value: unknown): ChatMeetupState["unavailable_reason"] | undefined {
   return value === "calendar_unavailable" || value === "no_shared_time" ? value : undefined;
 }
-export type ChatMeetupRoomContext = { roomId: string; matchId: string; userA: string; userB: string; callerId: string; partnerId: string; identityVerified: boolean; syntheticTestAdmission?: SyntheticRecordingAdmission };
+export type ChatMeetupRoomContext = { roomId: string; matchId: string; userA: string; userB: string; callerId: string; partnerId: string; identityVerified: boolean; syntheticTestAdmission?: SyntheticRecordingAdmission; judgeSimulatedAdmission?: JudgeSimulatedAdmission };
+async function meetupAdmissionRpc(client: ReturnType<typeof db>, name: string, args: Record<string, unknown>, context: ChatMeetupRoomContext): Promise<DbResult> {
+  return context.judgeSimulatedAdmission ? judgeSimulatedRpc(client, name, args, context.judgeSimulatedAdmission)
+    : recordingAdmissionRpc(client, name, args, context.syntheticTestAdmission);
+}
+
 export type ChatMeetupAccessResult = { ok: true; context: ChatMeetupRoomContext } | { ok: false; reason: "not_found" | "internal" };
 
 /** Rechecks active room membership, current mutual matching eligibility, age verification and both block directions. */
-export async function checkChatMeetupRoomAccess(client: SupabaseClient<Database>, roomId: string, callerId: string, recordingConfig?: ValidatedRecordingRehearsalConfig): Promise<ChatMeetupAccessResult> {
+export async function checkChatMeetupRoomAccess(client: SupabaseClient<Database>, roomId: string, callerId: string, recordingConfig?: ValidatedRecordingRehearsalConfig, judgeAccess?: JudgeAccess): Promise<ChatMeetupAccessResult> {
   if (!uuid.safeParse(roomId).success || !uuid.safeParse(callerId).success) return { ok: false, reason: "not_found" };
   const q = db(client);
   let roomResult: DbResult;
@@ -148,8 +156,15 @@ export async function checkChatMeetupRoomAccess(client: SupabaseClient<Database>
   const identityVerified = !!identityRows && identityRows.length === 2 && new Set(identityRows.map(p => p.id)).size === 2
     && identityRows.every(p => (p.id === match.user_a_id || p.id === match.user_b_id) && p.identity_verification_status === "verified"
       && typeof p.identity_verified_at === "string" && Number.isFinite(Date.parse(p.identity_verified_at)) && Date.parse(p.identity_verified_at) <= Date.now());
+  let judgeSimulatedAdmission: JudgeSimulatedAdmission | undefined;
+  if (judgeAccess) {
+    if (judgeAccess.counterpartId !== (callerId === match.user_a_id ? match.user_b_id : match.user_a_id)) return { ok: false, reason: "not_found" };
+    const admission = await checkJudgeSimulatedAdmission(q, judgeAccess, callerId, { roomId });
+    if (!admission) return { ok: false, reason: "not_found" };
+    judgeSimulatedAdmission = admission;
+  }
   let syntheticTestAdmission: SyntheticRecordingAdmission | undefined;
-  if (recordingConfig?.syntheticTestAdmissionId) {
+  if (!judgeAccess && recordingConfig?.syntheticTestAdmissionId) {
     if (!identityRows || identityRows.length !== 2 || new Set(identityRows.map(p => p.id)).size !== 2
       || identityRows.some(p => p.id !== match.user_a_id && p.id !== match.user_b_id)) return { ok: false, reason: "not_found" };
     const admission = await checkSyntheticRecordingAdmission(q, recordingConfig, callerId, { roomId, matchId: match.id });
@@ -158,7 +173,8 @@ export async function checkChatMeetupRoomAccess(client: SupabaseClient<Database>
   }
   return { ok: true, context: { roomId, matchId: match.id, userA: match.user_a_id, userB: match.user_b_id, callerId,
     partnerId: callerId === match.user_a_id ? match.user_b_id : match.user_a_id, identityVerified,
-    ...(syntheticTestAdmission ? { syntheticTestAdmission } : {}) } };
+    ...(syntheticTestAdmission ? { syntheticTestAdmission } : {}),
+    ...(judgeSimulatedAdmission ? { judgeSimulatedAdmission } : {}) } };
 }
 
 function projectTimeCandidates(value: unknown): ChatMeetupState["time_candidates"] | null {
@@ -239,10 +255,10 @@ async function readStateAfterAccess(client: SupabaseClient<Database>, context: C
     events = eventRows.filter((row) => row.kind !== "system" || !/\bcafe\b|starting area/iu.test(row.text as string)).map((row) => ({ id: row.id as string, revision: row.revision as number, kind: row.kind as "system" | "human", text: row.text as string, created_at: row.created_at as string }));
   }
   const terminal = status === "cancelled" || status === "expired" || status === "completed";
-  const identityReason = !context.identityVerified && !context.syntheticTestAdmission ? "identity_verification_required" as const : undefined;
+  const identityReason = !context.identityVerified && !context.syntheticTestAdmission && !context.judgeSimulatedAdmission ? "identity_verification_required" as const : undefined;
   const unavailableReasonForPermissions = !enabled ? "feature_disabled" as const : identityReason;
   const canIntent = !meetupId || terminal;
-  const canSchedule = enabled && (context.identityVerified || !!context.syntheticTestAdmission) && ["awaiting_availability", "time_proposed"].includes(status);
+  const canSchedule = enabled && (context.identityVerified || !!context.syntheticTestAdmission || !!context.judgeSimulatedAdmission) && ["awaiting_availability", "time_proposed"].includes(status);
   const confirmedEnd = session && typeof session.confirmed_ends_at === "string" ? Date.parse(session.confirmed_ends_at) : NaN;
   const canComplete = status === "confirmed" && !completed && Number.isFinite(confirmedEnd) && confirmedEnd <= Date.now();
   const canReplan = status === "confirmed" ? Number.isFinite(confirmedEnd) && confirmedEnd > Date.now() : ["time_proposed", "unavailable", "expired"].includes(status);
@@ -257,14 +273,14 @@ async function readStateAfterAccess(client: SupabaseClient<Database>, context: C
     expires_at: expiresAt,
     ...(unavailableReason ? { unavailable_reason: unavailableReason } : {}),
   };
-  const latestAccess = await checkChatMeetupRoomAccess(client, context.roomId, context.callerId, context.syntheticTestAdmission?.config);
+  const latestAccess = await checkChatMeetupRoomAccess(client, context.roomId, context.callerId, context.syntheticTestAdmission?.config, context.judgeSimulatedAdmission?.access);
   if (!latestAccess.ok) return { ok: false, reason: latestAccess.reason };
   if (latestAccess.context.matchId !== context.matchId || latestAccess.context.userA !== context.userA || latestAccess.context.userB !== context.userB) return { ok: false, reason: "not_found" };
   return { ok: true, state };
 }
 
 export async function getChatMeetupState(client: SupabaseClient<Database>, roomId: string, callerId: string, options: { enabled?: boolean; providers?: ChatMeetupProviders } = {}): Promise<ChatMeetupServiceResult> {
-  const access = await checkChatMeetupRoomAccess(client, roomId, callerId, options.providers?.recordingRehearsalConfig);
+  const access = await checkChatMeetupRoomAccess(client, roomId, callerId, options.providers?.recordingRehearsalConfig, options.providers?.judgeAccess);
   if (!access.ok) return { ok: false, reason: access.reason };
   const providers = options.providers ?? defaultChatMeetupProviders;
   return readStateAfterAccess(client, access.context, options.enabled === true, cafeProviderForRoom(providers, access.context));
@@ -310,7 +326,7 @@ async function publishAvailableTimes(client: SupabaseClient<Database>, context: 
   const operationKey = typeof session.quota_operation_key === "string" ? session.quota_operation_key : `chat-meetup:${session.meetup_id}`;
   if (typeof session.quota_claim_owner_id !== "string") return "internal";
   let claimResult: DbResult;
-  try { claimResult = await recordingAdmissionRpc(q, "claim_meetup_arrangement", { p_meetup_id: session.meetup_id, p_user_id: claimOwner, p_is_retry: false, p_operation_key: operationKey }, context.syntheticTestAdmission); }
+  try { claimResult = await meetupAdmissionRpc(q, "claim_meetup_arrangement", { p_meetup_id: session.meetup_id, p_user_id: claimOwner, p_is_retry: false, p_operation_key: operationKey }, context); }
   catch { return "internal"; }
   const claim = rpcRow(claimResult.data);
   if (claimResult.error || !claim || typeof claim.outcome !== "string") return "internal";
@@ -335,11 +351,11 @@ async function publishAvailableTimes(client: SupabaseClient<Database>, context: 
   } catch { return "bad_request"; }
   let publish: DbResult;
   try {
-    publish = await recordingAdmissionRpc(q, "publish_chat_meetup_times", {
+    publish = await meetupAdmissionRpc(q, "publish_chat_meetup_times", {
       p_room_id: context.roomId, p_user_id: callerId, p_expected_revision: session.revision,
       p_first_private_revision: revByUser.get(context.userA), p_second_private_revision: revByUser.get(context.userB),
       p_candidates: candidates, p_unavailable_reason: candidates.length ? null : "no_shared_time",
-    }, context.syntheticTestAdmission);
+    }, context);
   } catch { return "internal"; }
   const published = parsePublishOutcome(publish.data);
   if (publish.error || !published) return "internal";
@@ -349,8 +365,8 @@ async function publishAvailableTimes(client: SupabaseClient<Database>, context: 
 }
 
 /** Resume the ordinary availability orchestration after a registry counterpart action. */
-export async function refreshChatMeetupAvailableTimes(client: SupabaseClient<Database>, roomId: string, callerId: string): Promise<ChatMeetupServiceFailure | null> {
-  const access = await checkChatMeetupRoomAccess(client, roomId, callerId);
+export async function refreshChatMeetupAvailableTimes(client: SupabaseClient<Database>, roomId: string, callerId: string, judgeAccess?: JudgeAccess): Promise<ChatMeetupServiceFailure | null> {
+  const access = await checkChatMeetupRoomAccess(client, roomId, callerId, undefined, judgeAccess);
   if (!access.ok) return access.reason;
   return publishAvailableTimes(client, access.context, callerId);
 }
@@ -358,21 +374,21 @@ export async function refreshChatMeetupAvailableTimes(client: SupabaseClient<Dat
 export async function applyChatMeetupAction(client: SupabaseClient<Database>, roomId: string, callerId: string, request: ChatMeetupActionRequest, options: { enabled?: boolean; providers?: ChatMeetupProviders } = {}): Promise<ChatMeetupServiceResult> {
   const parsed = chatMeetupActionRequestSchema.safeParse(request);
   if (!parsed.success) return { ok: false, reason: "bad_request" };
-  const access = await checkChatMeetupRoomAccess(client, roomId, callerId, options.providers?.recordingRehearsalConfig);
+  const access = await checkChatMeetupRoomAccess(client, roomId, callerId, options.providers?.recordingRehearsalConfig, options.providers?.judgeAccess);
   if (!access.ok) return { ok: false, reason: access.reason };
   if (options.enabled !== true) return { ok: false, reason: "invalid_state" };
   const action = parsed.data.action;
-  if (new Set<string>(["availability.submit", "time.approve", "replan"]).has(action.type) && !access.context.identityVerified && !access.context.syntheticTestAdmission) return { ok: false, reason: "identity_verification_required" };
+  if (new Set<string>(["availability.submit", "time.approve", "replan"]).has(action.type) && !access.context.identityVerified && !access.context.syntheticTestAdmission && !access.context.judgeSimulatedAdmission) return { ok: false, reason: "identity_verification_required" };
   const digest = await sha256Hex(JSON.stringify({ expected_revision: parsed.data.expected_revision, expected_own_revision: parsed.data.expected_own_revision, action }));
   const providers = options.providers ?? defaultChatMeetupProviders;
   const cafeProvider = cafeProviderForRoom(providers, access.context);
   let result: DbResult;
   try {
-    result = await recordingAdmissionRpc(db(client), "apply_chat_meetup_action", {
+    result = await meetupAdmissionRpc(db(client), "apply_chat_meetup_action", {
       p_room_id: roomId, p_user_id: callerId, p_expected_revision: parsed.data.expected_revision,
       p_expected_own_revision: parsed.data.expected_own_revision, p_idempotency_key: parsed.data.idempotency_key,
       p_request_digest: digest, p_action: actionToRpcJson(action),
-    }, access.context.syntheticTestAdmission);
+    }, access.context);
   } catch { return { ok: false, reason: "internal" }; }
   const row = parseRpcOutcome(result.data);
   if (result.error || !row) return { ok: false, reason: "internal" };

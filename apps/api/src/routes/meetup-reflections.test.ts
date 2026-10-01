@@ -571,6 +571,8 @@ describe("judge reflection simulation metadata", () => {
   const PEER = "44444444-4444-4444-8444-444444444444";
   async function judgeRead(peer = PEER) {
     const supabase = makeSupabase({ session: { user_a_id: OWNER_ID, user_b_id: peer } });
+    const originalRpc = supabase.rpc.bind(supabase);
+    supabase.rpc = vi.fn(async (name: string, args: Record<string, unknown>) => name === "check_judge_simulated_admission" ? { data: { admitted: true }, error: null } : originalRpc(name === "judge_simulated_get_meetup_reflection_state" ? "get_meetup_reflection_state" : name, args));
     mockedGetSupabaseClient.mockReturnValue(supabase as never);
     const app = new Hono<Env>();
     app.use("*", async (c, next) => { c.set("judge_access", { actorId: OWNER_ID, counterpartId: PEER, accountKind: "judge", expiresAtMs: Date.parse("2026-10-13T19:00:00Z") }); await next(); });
@@ -593,9 +595,10 @@ describe("judge reflection voice admission", () => {
   const db=makeSupabase({states:[options.state ?? okState(1)]});
   const originalRpc=db.rpc.bind(db);
   const rpc=vi.fn(async(name:string,args:Record<string,unknown>)=>{
+   if(name==="check_judge_simulated_admission")return {data:{admitted:true},error:null};
    if(name==="reserve_judge_reflection_voice_session")return {error:null,data:{outcome:"allowed",reservation_id:"44444444-4444-4444-8444-444444444444",max_units:20000,max_seconds:180,expires_at:new Date(FIXED_NOW+180000).toISOString()}};
    if(name==="check_judge_access")return {error:null,data:{outcome:"allowed",actor_user_id:OWNER_ID,account_kind:"judge"}};
-   return originalRpc(name,args);
+   return originalRpc(name === "judge_simulated_get_meetup_reflection_state" ? "get_meetup_reflection_state" : name,args);
   });
   mockedGetSupabaseClient.mockReturnValue({...db,rpc} as never);
   const doFetch=vi.fn(async(_request:Request)=>Response.json({sdp:"v=0\r\na=answer\r\n",max_duration_seconds:180},{status:201}));

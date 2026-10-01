@@ -180,6 +180,13 @@ BEGIN
  EXECUTE replace(original_voice,'IF NOT FOUND OR state.outcome<>''ok''','IF false');
  SELECT * INTO r FROM public.reserve_judge_reflection_voice_session(actor,foreign_meetup,gen_random_uuid());
  EXECUTE original_voice;
+ IF r.outcome<>'denied' THEN RAISE EXCEPTION 'exact judge admission did not retain foreign reflection denial'; END IF;
+ -- Remove both independent guards to prove that the foreign-context negative control is meaningful.
+ EXECUTE replace(replace(replace(original_voice,'IF NOT FOUND OR state.outcome<>''ok''','IF false'),
+  'IF NOT wingward_private.judge_simulated_admitted(p_user_id,p_user_id,NULL,p_context_id)','IF false'),
+  'public.judge_simulated_get_meetup_reflection_state(p_user_id,p_context_id,p_user_id)','public.get_meetup_reflection_state(p_context_id,p_user_id)');
+ SELECT * INTO r FROM public.reserve_judge_reflection_voice_session(actor,foreign_meetup,gen_random_uuid());
+ EXECUTE original_voice;
  IF r.outcome<>'allowed' THEN RAISE EXCEPTION 'foreign reflection guard mutation did not admit'; END IF;
  DELETE FROM wingward_private.judge_voice_leases WHERE reservation_id=r.reservation_id;
  DELETE FROM wingward_private.judge_provider_reservations WHERE reservation_id=r.reservation_id;

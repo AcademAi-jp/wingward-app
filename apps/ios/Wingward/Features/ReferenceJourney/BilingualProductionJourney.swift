@@ -19,6 +19,21 @@ enum BilingualProductionChatRequestState: String, Equatable, Sendable {
   case expired
 }
 
+enum BilingualProductionMeetupDestination: Equatable, Sendable {
+  case directChats
+  case meetup
+}
+
+func bilingualProductionMeetupDestination(
+  simulatedCounterpart: Bool,
+  hasActiveDirectChat: Bool
+) -> BilingualProductionMeetupDestination? {
+  if simulatedCounterpart {
+    return hasActiveDirectChat ? .directChats : nil
+  }
+  return .meetup
+}
+
 func bilingualProductionActiveDirectChat(
   for matchID: UUID,
   in chats: [DirectChatSummary]
@@ -1003,9 +1018,14 @@ private struct BilingualProductionMatchDetailView: View {
         .accessibilityIdentifier("production.matchDetail.reportBlock")
       }
 
-      if nativeIntegration.meetupForMatch != nil {
+      if let meetupDestination = bilingualProductionMeetupDestination(
+        simulatedCounterpart: detail.simulatedCounterpart,
+        hasActiveDirectChat: ["direct_chat_active", "meetup_intent", "meetup_confirmed"].contains(detail.status)
+      ), meetupDestination == .directChats ? nativeIntegration.directChats != nil : nativeIntegration.meetupForMatch != nil {
         Button {
-          presentedFeature = BilingualProductionFeaturePresentation(kind: .meetup)
+          presentedFeature = BilingualProductionFeaturePresentation(
+            kind: meetupDestination == .directChats ? .directChats : .meetup
+          )
         } label: {
           Label(
             bilingualReferenceCopy(.productionPlanMeetup, language: language),
@@ -1107,6 +1127,7 @@ private struct BilingualProductionMatchDetailView: View {
             api: api,
             language: language,
             nativeIntegration: nativeIntegration,
+            simulatedCounterpart: detail.simulatedCounterpart,
             directChatsAPI: nativeIntegration.directChatsAPI?(ownerID)
           )
         } label: {
@@ -1258,6 +1279,7 @@ private struct BilingualProductionPartnerWardView: View {
   let api: any MatchDetailAPI
   let language: BilingualReferenceLanguage
   let nativeIntegration: NativeFeatureIntegration
+  let simulatedCounterpart: Bool
   let directChatsAPI: (any DirectChatsAPI)?
 
   @State private var store: PartnerWardStore
@@ -1277,6 +1299,7 @@ private struct BilingualProductionPartnerWardView: View {
     api: any MatchDetailAPI,
     language: BilingualReferenceLanguage,
     nativeIntegration: NativeFeatureIntegration,
+    simulatedCounterpart: Bool,
     directChatsAPI: (any DirectChatsAPI)? = nil
   ) {
     self.ownerID = ownerID
@@ -1286,6 +1309,7 @@ private struct BilingualProductionPartnerWardView: View {
     self.api = api
     self.language = language
     self.nativeIntegration = nativeIntegration
+    self.simulatedCounterpart = simulatedCounterpart
     self.directChatsAPI = directChatsAPI
     _store = State(
       initialValue: PartnerWardStore(
@@ -1865,9 +1889,14 @@ private struct BilingualProductionPartnerWardView: View {
         }
         .buttonStyle(BilingualReferenceSecondaryButtonStyle())
       }
-      if nativeIntegration.meetupForMatch != nil {
+      if let meetupDestination = bilingualProductionMeetupDestination(
+        simulatedCounterpart: simulatedCounterpart,
+        hasActiveDirectChat: matchingDirectChat != nil
+      ), meetupDestination == .directChats ? nativeIntegration.directChats != nil : nativeIntegration.meetupForMatch != nil {
         Button {
-          presentedFeature = BilingualProductionFeaturePresentation(kind: .meetup)
+          presentedFeature = BilingualProductionFeaturePresentation(
+            kind: meetupDestination == .directChats ? .directChats : .meetup
+          )
         } label: {
           Label(
             bilingualReferenceCopy(.productionPlanMeetup, language: language),

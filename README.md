@@ -45,6 +45,20 @@ The hosted judging environment is available to designated accounts until **Octob
 
 **The judging counterpart is fictional.** Steps that need another person’s response are simulated; no real person is contacted and no real meeting takes place. The app labels this experience. A real identity-verification provider is not connected, and the demo does not verify anyone’s identity. You do not need to upload identity documents to evaluate the fictional journey.
 
+### Continue from matching to reflection
+
+After confirming your profile, open **Matches**. Use **Preview eligibility**, then **Start matching** if a candidate is eligible. Preview does not create a match. The designated fictional counterparts are prepared for the US matching market. They still go through the normal mutual-preference, market, block, and compatibility checks, so a match is not guaranteed. Keep your own preferences accurate.
+
+When a match is available:
+
+1. Open the match, review the compatibility conversation, then choose **Start Partner Ward** to open a conversation with the other Ward. From there, request a chat. The designated fictional counterpart can accept the request automatically.
+2. Open the resulting room in **Chats** and use the meeting controls inside the room. Choose **I'm open to meeting**.
+3. Share availability, choose a proposed time, and follow the displayed prompts. The fictional counterpart's planning actions advance automatically. If access requires a purchase, use RevenueCat Test Store as described below.
+4. Once the plan is confirmed, choose **Simulate meetup and continue to reflection**. This is an explicitly simulated meeting; you do not need to attend or contact anyone.
+5. Start a private voice reflection, generate suggestions from your own words, and choose which changes to save to your profile.
+
+The fictional counterpart simulates acceptance and planning actions; it does not send human chat replies. Ward's AI conversations are a separate feature. If no candidate is eligible, you can still review your own profile and try the available Ward features.
+
 ## Try purchases with RevenueCat Test Store
 
 **Test Store purchases are simulated and do not charge money.**

@@ -1,3 +1,5 @@
+import { checkJudgeSimulatedAdmission, judgeSimulatedRpc } from "../services/judge-simulated-admission";
+import type { JudgeAccess } from "../services/judge-access";
 import { judgeChatComplete } from "../services/judge-chat-complete";
 import { dispatchJudgeVoice, readJudgeVoiceBody, stopJudgeVoice } from "./judge-realtime";
 import { isJudgeAccessActive } from "../services/judge-access";
@@ -52,27 +54,33 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 	return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
-function makeStore(supabase: ReturnType<typeof getSupabaseClient>, config?: ValidatedRecordingRehearsalConfig): ReflectionStore {
+function makeStore(supabase: ReturnType<typeof getSupabaseClient>, config?: ValidatedRecordingRehearsalConfig, judgeAccess?: JudgeAccess): ReflectionStore {
 	const rpc = supabase as unknown as RpcClient;
 	return {
 		async readState(userId, meetupId) {
-			const admission = config?.syntheticTestAdmissionId ? await checkSyntheticRecordingAdmission(rpc, config, userId, { meetupId }) : undefined;
-			if (config?.syntheticTestAdmissionId && !admission) return { data: null, error: "Synthetic test admission unavailable" };
-			return recordingAdmissionRpc(rpc, "get_meetup_reflection_state", {
+			const judgeAdmission = judgeAccess ? await checkJudgeSimulatedAdmission(rpc, judgeAccess, userId, { meetupId }) : undefined;
+			if (judgeAccess && !judgeAdmission) return { data: null, error: "Judge simulation unavailable" };
+			const admission = !judgeAccess && config?.syntheticTestAdmissionId ? await checkSyntheticRecordingAdmission(rpc, config, userId, { meetupId }) : undefined;
+			if (!judgeAccess && config?.syntheticTestAdmissionId && !admission) return { data: null, error: "Synthetic test admission unavailable" };
+			const args = {
 				p_meetup_id: meetupId,
 				p_user_id: userId,
-			}, admission ?? undefined);
+			};
+			return judgeAdmission ? judgeSimulatedRpc(rpc, "get_meetup_reflection_state", args, judgeAdmission) : recordingAdmissionRpc(rpc, "get_meetup_reflection_state", args, admission ?? undefined);
 		},
 		async confirm(input) {
-			const admission = config?.syntheticTestAdmissionId ? await checkSyntheticRecordingAdmission(rpc, config, input.userId, { meetupId: input.meetupId }) : undefined;
-			if (config?.syntheticTestAdmissionId && !admission) return { data: null, error: "Synthetic test admission unavailable" };
-			return recordingAdmissionRpc(rpc, "confirm_meetup_reflection", {
+			const judgeAdmission = judgeAccess ? await checkJudgeSimulatedAdmission(rpc, judgeAccess, input.userId, { meetupId: input.meetupId }) : undefined;
+			if (judgeAccess && !judgeAdmission) return { data: null, error: "Judge simulation unavailable" };
+			const admission = !judgeAccess && config?.syntheticTestAdmissionId ? await checkSyntheticRecordingAdmission(rpc, config, input.userId, { meetupId: input.meetupId }) : undefined;
+			if (!judgeAccess && config?.syntheticTestAdmissionId && !admission) return { data: null, error: "Synthetic test admission unavailable" };
+			const args = {
 				p_meetup_id: input.meetupId,
 				p_user_id: input.userId,
 				p_idempotency_key: input.idempotencyKey,
 				p_expected_version: input.expectedVersion,
 				p_traits: input.traits,
-			}, admission ?? undefined);
+			};
+			return judgeAdmission ? judgeSimulatedRpc(rpc, "confirm_meetup_reflection", args, judgeAdmission) : recordingAdmissionRpc(rpc, "confirm_meetup_reflection", args, admission ?? undefined);
 		},
 	};
 }
@@ -314,7 +322,7 @@ meetupReflections.get("/:meetupId", requireAuth, async (c) => {
 		return privateError(c, "NOT_FOUND", "Meetup reflection not found");
 	}
 	const userId = c.get("user_id");
-	const service = createMeetupReflectionService(makeStore(getSupabaseClient(c.env), c.get("recording_rehearsal")), null);
+	const service = createMeetupReflectionService(makeStore(getSupabaseClient(c.env), c.get("recording_rehearsal"), c.get("judge_access")), null);
 	const result = await service.readState(userId, meetupId);
 	if (!result.ok) return resultError(c, result.reason);
 	const judge = c.get("judge_access");
@@ -341,7 +349,7 @@ meetupReflections.post("/:meetupId/realtime-call", requireAuth, async (c) => {
     || c.env.MEETUP_REFLECTION_REALTIME_ENABLED!=="enabled" || !c.env.JUDGE_REALTIME_CALLS) return resultError(c,"unavailable");
   if(!meetupIdSchema.safeParse(meetupId).success) return resultError(c,"not_found");
   const input=await readJudgeVoiceBody(c);if(!input)return privateError(c,"BAD_REQUEST","Invalid reflection connection",400);
-  const db=getSupabaseClient(c.env),service=createMeetupReflectionService(makeStore(db),null);
+  const db=getSupabaseClient(c.env),service=createMeetupReflectionService(makeStore(db, undefined, access),null);
   const state=await service.readState(access.actorId,meetupId);if(!state.ok)return resultError(c,state.reason);
   const owner=await readOwnerContext(db,access.actorId,()=>isJudgeAccessActive(access));if(!owner)return resultError(c,"unavailable");
   return dispatchJudgeVoice(c,meetupId,"reflection",{sdp:input.sdp,voice:input.voice,language:owner.language,personaDocument:owner.personaDocument,confirmedTraits:state.data.confirmed_traits});
@@ -369,7 +377,7 @@ meetupReflections.post("/:meetupId/bootstrap", requireAuth, async (c) => {
 		return resultError(c, "unavailable");
 	}
 	const supabase = getSupabaseClient(c.env);
-	const service = createMeetupReflectionService(makeStore(supabase, rehearsal), null);
+	const service = createMeetupReflectionService(makeStore(supabase, rehearsal, c.get("judge_access")), null);
 	const before = await service.readState(userId, meetupId);
 	if (!stillActive()) return resultError(c, "unavailable");
 	if (!before.ok) return resultError(c, before.reason);
@@ -463,7 +471,7 @@ meetupReflections.post("/:meetupId/drafts", requireAuth, async (c) => {
 		return resultError(c, "unavailable");
 	}
 	const supabase = getSupabaseClient(c.env);
-	const store = makeStore(supabase, rehearsal);
+	const store = makeStore(supabase, rehearsal, c.get("judge_access"));
 	const service = createMeetupReflectionService(store, null);
 	const before = await service.readState(userId, meetupId);
 	if (!stillActive()) return resultError(c, "unavailable");
@@ -517,7 +525,7 @@ meetupReflections.post("/:meetupId/confirm", requireAuth, async (c) => {
 	}
 	const body = await readBoundedJson(c, 16_384);
 	const userId = c.get("user_id");
-	const service = createMeetupReflectionService(makeStore(getSupabaseClient(c.env), c.get("recording_rehearsal")), null);
+	const service = createMeetupReflectionService(makeStore(getSupabaseClient(c.env), c.get("recording_rehearsal"), c.get("judge_access")), null);
 	const result = await service.confirm(userId, meetupId, body);
 	if (!result.ok) return resultError(c, result.reason);
 	return privateData(c, {
