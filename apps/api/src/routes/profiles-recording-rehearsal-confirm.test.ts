@@ -280,6 +280,44 @@ describe("POST /api/profiles/me/confirm recording rehearsal boundary", () => {
 
 
 describe("judge exact pair profile confirmation", () => {
+  it("keeps the recording environment cross-check when both contexts exist", async () => {
+    const client = makeConfirmSupabase(); mocks.getSupabaseClient.mockReturnValue(client.client);
+    const app = new Hono<Env>();
+    app.use("*", async (c, next) => {
+      c.set("judge_access", { actorId:SORA_ID, counterpartId:REN_ID, accountKind:"judge", expiresAtMs:Date.now()+30_000 });
+      c.set("recording_rehearsal", rehearsalConfig("sora-ren")); await next();
+    });
+    app.route("/api/profiles", profiles);
+    expect((await app.request("/api/profiles/me/confirm", {method:"POST"}, envFor(undefined, {RECORDING_REHEARSAL_ENABLED:"disabled"}))).status).toBe(503);
+    expect(client.traces).toEqual([]);
+  });
+  it("rejects expired judge access despite stale recording bindings", async () => {
+    const client = makeConfirmSupabase(); mocks.getSupabaseClient.mockReturnValue(client.client);
+    const app = new Hono<Env>();
+    app.use("*", async (c, next) => {
+      c.set("judge_access", { actorId:SORA_ID, counterpartId:REN_ID, accountKind:"judge", expiresAtMs:Date.now()-1 }); await next();
+    });
+    app.route("/api/profiles", profiles);
+    expect((await app.request("/api/profiles/me/confirm", {method:"POST"}, envFor(undefined, {RECORDING_REHEARSAL_ENABLED:"disabled"}))).status).toBe(403);
+    expect(client.traces).toEqual([]);
+  });
+
+  it("confirms a validated judge despite stale recording bindings", async () => {
+    const client = makeConfirmSupabase();
+    mocks.getSupabaseClient.mockReturnValue(client.client);
+    const app = new Hono<Env>();
+    app.use("*", async (c, next) => {
+      c.set("judge_access", { actorId: SORA_ID, counterpartId: REN_ID, accountKind: "judge", expiresAtMs: Date.now() + 30_000 });
+      await next();
+    });
+    app.route("/api/profiles", profiles);
+    const result = await app.request("/api/profiles/me/confirm", { method: "POST" }, envFor(undefined, {
+      RECORDING_REHEARSAL_ENABLED: "disabled", RECORDING_REHEARSAL_EXPIRES_AT: "2026-01-01T00:00:00Z",
+    }));
+    expect(result.status).toBe(200);
+    expect(mocks.executeMatching).toHaveBeenCalledWith(client.client, 1, undefined, expect.objectContaining({profileIds: [SORA_ID, REN_ID], actorId: SORA_ID}));
+  });
+
   it("starts matching only with registry actor and counterpart and an expiry write guard", async () => {
     const client = makeConfirmSupabase();
     mocks.getSupabaseClient.mockReturnValue(client.client);
