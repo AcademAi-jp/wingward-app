@@ -1,0 +1,37 @@
+{
+  "name": "@repo/api",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch ./src/node.ts",
+    "dev:worker": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "build": "tsc -p tsconfig.build.json",
+    "test": "vitest run --config vitest.config.ts && node --import tsx/esm --test scripts/voice-smoke-server.test.ts",
+    "lint": "echo 'No linter configured for API'",
+    "format": "echo 'No formatter configured for API'",
+    "check": "echo 'No check configured for API'",
+    "check:fix": "echo 'No biome in API'"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^5.20260809.1",
+    "tsx": "^4.20.5",
+    "vitest": "^3.2.4",
+    "wrangler": "^4.14.0"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/types.d.ts",
+      "default": "./src/types.ts"
+    }
+  },
+  "dependencies": {
+    "@hono/node-server": "^1.19.1",
+    "@mistralai/mistralai": "^1.0.0",
+    "@supabase/supabase-js": "^2.49.4",
+    "dotenv": "^16.4.5",
+    "hono": "^4.9.6",
+    "zod": "^3.24.0"
+  },
+  "packageManager": "pnpm@10.34.5+sha512.pO4F8vc2WCVb1qiYWcBlpFwopX2u+uLIk6Fo7itzFow3uR6D5X6mdlStA/AwMXRkMOi84442LgQmBfuKvIAZLg=="
+}

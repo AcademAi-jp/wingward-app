@@ -1,0 +1,22 @@
+{
+  "name": "repo",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "mise exec -- turbo dev",
+    "build": "mise exec -- turbo build",
+    "lint": "mise exec -- turbo lint",
+    "format": "mise exec -- turbo format",
+    "check": "mise exec -- turbo check",
+    "check:fix": "mise exec -- turbo check:fix",
+    "test": "mise exec -- turbo test",
+    "clean": "mise exec -- turbo clean",
+    "prepare": "husky"
+  },
+  "devDependencies": {
+    "husky": "^9.1.7",
+    "turbo": "^2.5.6",
+    "typescript": "^5.7.2"
+  },
+  "packageManager": "pnpm@10.34.5+sha512.pO4F8vc2WCVb1qiYWcBlpFwopX2u+uLIk6Fo7itzFow3uR6D5X6mdlStA/AwMXRkMOi84442LgQmBfuKvIAZLg=="
+}

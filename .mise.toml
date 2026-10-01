@@ -1,0 +1,6 @@
+[tools]
+node = "22"
+pnpm = "10.34.5"
+
+[env]
+_.path = ["./node_modules/.bin", "./apps/api/node_modules/.bin"]

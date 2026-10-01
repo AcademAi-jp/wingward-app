@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" role="img" aria-labelledby="title description">
+  <title id="title">WingWard</title>
+  <desc id="description">対話と翼を表す抽象的なWのマーク</desc>
+  <rect width="96" height="96" rx="27" fill="#FFCA28"/>
+  <path d="M20 29L34 67L48 42L62 67L76 29" fill="none" stroke="#171719" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M73 14V24M68 19H78" fill="none" stroke="#FFFFFF" stroke-width="4" stroke-linecap="round"/>
+</svg>

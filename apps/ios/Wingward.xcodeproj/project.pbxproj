@@ -1,0 +1,1074 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 56;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		12997A2BA0D789776FD2FF04 /* Wingward/Features/VoiceProfile/LiveVoiceInterviewTransportFactory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D94360479E6E9DC5A16A954 /* Wingward/Features/VoiceProfile/LiveVoiceInterviewTransportFactory.swift */; };
+		17B8809EABF28A0682891577 /* Wingward/Features/Billing/RevenueCatBillingClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2F375D88813C996C045CD50A /* Wingward/Features/Billing/RevenueCatBillingClient.swift */; };
+		185267015DB4923A4F12AD61 /* WingwardTests/RevenueCatBillingClientTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F940E80BB01014CB7669AD61 /* WingwardTests/RevenueCatBillingClientTests.swift */; };
+		2C87DEE7315A56EDDD8A5296 /* WingwardTests/VoiceProfileNativeBootstrapTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9AAFFC028CD0745CF4C872B2 /* WingwardTests/VoiceProfileNativeBootstrapTests.swift */; };
+		7306A8F0A3EE3983F42800AD /* Wingward/Features/VoiceProfile/LiveVoiceInterviewTransport.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD6E2011E164047E950929C1 /* Wingward/Features/VoiceProfile/LiveVoiceInterviewTransport.swift */; };
+		A10000000000000000000001 /* AppConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000001 /* AppConfiguration.swift */; };
+		A10000000000000000000002 /* AuthContracts.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000002 /* AuthContracts.swift */; };
+		A10000000000000000000003 /* AuthSessionController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000003 /* AuthSessionController.swift */; };
+		A10000000000000000000004 /* KeychainAuthLocalStorage.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000004 /* KeychainAuthLocalStorage.swift */; };
+		A10000000000000000000005 /* ProfileAPI.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000005 /* ProfileAPI.swift */; };
+		A10000000000000000000006 /* SupabaseAuthService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000006 /* SupabaseAuthService.swift */; };
+		A10000000000000000000007 /* WingwardApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000007 /* WingwardApp.swift */; };
+		A10000000000000000000008 /* Views.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000008 /* Views.swift */; };
+		A10000000000000000000009 /* Supabase in Frameworks */ = {isa = PBXBuildFile; productRef = A50000000000000000000001 /* Supabase */; };
+		A10000000000000000000010 /* AuthSessionControllerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000010 /* AuthSessionControllerTests.swift */; };
+		A10000000000000000000011 /* ConfigurationSecurityTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000011 /* ConfigurationSecurityTests.swift */; };
+		A10000000000000000000012 /* WingwardUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000012 /* WingwardUITests.swift */; };
+		A10000000000000000000013 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000018 /* PrivacyInfo.xcprivacy */; };
+		A10000000000000000000014 /* PrivacyManifestTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000019 /* PrivacyManifestTests.swift */; };
+		A10000000000000000000015 /* AppRoute.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000020 /* AppRoute.swift */; };
+		A10000000000000000000016 /* AuthenticatedAPIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000021 /* AuthenticatedAPIClient.swift */; };
+		A10000000000000000000017 /* CoreFoundationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000022 /* CoreFoundationTests.swift */; };
+		A10000000000000000000018 /* TeaserJourney.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000023 /* TeaserJourney.swift */; };
+		A10000000000000000000019 /* TeaserJourneyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000024 /* TeaserJourneyTests.swift */; };
+		A10000000000000000000020 /* OnboardingSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000025 /* OnboardingSettings.swift */; };
+		A10000000000000000000021 /* OnboardingSettingsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000026 /* OnboardingSettingsTests.swift */; };
+		A10000000000000000000022 /* OnboardingSettingsStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000027 /* OnboardingSettingsStore.swift */; };
+		A10000000000000000000023 /* OnboardingSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000028 /* OnboardingSettingsView.swift */; };
+		A10000000000000000000024 /* OnboardingSettingsStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000029 /* OnboardingSettingsStoreTests.swift */; };
+		A10000000000000000000025 /* ReferenceJourneyModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000030 /* ReferenceJourneyModels.swift */; };
+		A10000000000000000000026 /* ReferenceJourneyFixtures.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000031 /* ReferenceJourneyFixtures.swift */; };
+		A10000000000000000000027 /* ReferenceJourneyComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000032 /* ReferenceJourneyComponents.swift */; };
+		A10000000000000000000028 /* ReferenceJourney.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000033 /* ReferenceJourney.swift */; };
+		A10000000000000000000029 /* ReferenceJourneyWardAndInsight.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000034 /* ReferenceJourneyWardAndInsight.swift */; };
+		A10000000000000000000030 /* ReferenceJourneyHomeAndChat.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000035 /* ReferenceJourneyHomeAndChat.swift */; };
+		A10000000000000000000031 /* ReferenceJourneyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000036 /* ReferenceJourneyTests.swift */; };
+		A10000000000000000000032 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000037 /* Assets.xcassets */; };
+		A10000000000000000000033 /* MatchesModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000038 /* MatchesModels.swift */; };
+		A10000000000000000000034 /* MatchesAPI.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000039 /* MatchesAPI.swift */; };
+		A10000000000000000000035 /* MatchesStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000040 /* MatchesStore.swift */; };
+		A10000000000000000000036 /* MatchesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000041 /* MatchesView.swift */; };
+		A10000000000000000000037 /* MatchesTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000042 /* MatchesTests.swift */; };
+		A10000000000000000000038 /* MatchDetailModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000043 /* MatchDetailModels.swift */; };
+		A10000000000000000000039 /* MatchDetailAPI.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000044 /* MatchDetailAPI.swift */; };
+		A10000000000000000000040 /* MatchDetailStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000045 /* MatchDetailStore.swift */; };
+		A10000000000000000000041 /* MatchDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000046 /* MatchDetailView.swift */; };
+		A10000000000000000000042 /* MatchDetailTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000047 /* MatchDetailTests.swift */; };
+		A10000000000000000000043 /* ConversationInsight.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000048 /* ConversationInsight.swift */; };
+		A10000000000000000000044 /* ConversationInsightTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000049 /* ConversationInsightTests.swift */; };
+		A10000000000000000000045 /* QuizContracts.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000050 /* QuizContracts.swift */; };
+		A10000000000000000000046 /* QuizStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000051 /* QuizStore.swift */; };
+		A10000000000000000000047 /* QuizView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000052 /* QuizView.swift */; };
+		A10000000000000000000048 /* QuizTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000053 /* QuizTests.swift */; };
+		A10000000000000000000054 /* NativeFeatureDebugJourney.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000054 /* NativeFeatureDebugJourney.swift */; };
+		A10000000000000000000055 /* NativeFeatureIntegration.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000055 /* NativeFeatureIntegration.swift */; };
+		A10000000000000000000056 /* NativeFeatureLiveIntegration.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000056 /* NativeFeatureLiveIntegration.swift */; };
+		A10000000000000000000057 /* BillingAPI.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000057 /* BillingAPI.swift */; };
+		A10000000000000000000058 /* BillingModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000058 /* BillingModels.swift */; };
+		A10000000000000000000059 /* BillingStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000059 /* BillingStore.swift */; };
+		A10000000000000000000060 /* ChatsAPI.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000060 /* ChatsAPI.swift */; };
+		A10000000000000000000061 /* ChatsModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000061 /* ChatsModels.swift */; };
+		A10000000000000000000062 /* ChatsStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000062 /* ChatsStore.swift */; };
+		A10000000000000000000063 /* ChatsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000063 /* ChatsView.swift */; };
+		A10000000000000000000064 /* MeetupAPI.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000064 /* MeetupAPI.swift */; };
+		A10000000000000000000065 /* MeetupModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000065 /* MeetupModels.swift */; };
+		A10000000000000000000066 /* MeetupStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000066 /* MeetupStore.swift */; };
+		A10000000000000000000067 /* MeetupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000067 /* MeetupView.swift */; };
+		A10000000000000000000068 /* SafetyAPI.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000068 /* SafetyAPI.swift */; };
+		A10000000000000000000069 /* SafetyModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000069 /* SafetyModels.swift */; };
+		A10000000000000000000070 /* SafetyStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000070 /* SafetyStore.swift */; };
+		A10000000000000000000071 /* VoiceProfileContracts.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000071 /* VoiceProfileContracts.swift */; };
+		A10000000000000000000072 /* VoiceProfileStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000072 /* VoiceProfileStore.swift */; };
+		A10000000000000000000073 /* VoiceProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000073 /* VoiceProfileView.swift */; };
+		A10000000000000000000074 /* BillingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000074 /* BillingTests.swift */; };
+		A10000000000000000000075 /* ChatsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000075 /* ChatsTests.swift */; };
+		A10000000000000000000076 /* MeetupsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000076 /* MeetupsTests.swift */; };
+		A10000000000000000000077 /* PartnerWardWriteTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000077 /* PartnerWardWriteTests.swift */; };
+		A10000000000000000000078 /* SafetyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000078 /* SafetyTests.swift */; };
+		A10000000000000000000079 /* VoiceProfileTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000079 /* VoiceProfileTests.swift */; };
+		A10000000000000000000080 /* NativeFeatureIntegrationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000080 /* NativeFeatureIntegrationTests.swift */; };
+		A10000000000000000000081 /* BillingDebugFixture.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000081 /* BillingDebugFixture.swift */; };
+		A10000000000000000000082 /* ChatsDebugFixture.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000082 /* ChatsDebugFixture.swift */; };
+		A10000000000000000000083 /* MeetupDebugFixture.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000083 /* MeetupDebugFixture.swift */; };
+		A10000000000000000000084 /* SafetyDebugFixture.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000084 /* SafetyDebugFixture.swift */; };
+		A10000000000000000000085 /* VoiceProfileDebugFixture.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000085 /* VoiceProfileDebugFixture.swift */; };
+		A10000000000000000000086 /* NativeFeatureLiveConfigurationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000086 /* NativeFeatureLiveConfigurationTests.swift */; };
+		A10000000000000000000090 /* RevenueCat in Frameworks */ = {isa = PBXBuildFile; productRef = A50000000000000000000003 /* RevenueCat */; };
+		A10000000000000000000091 /* ElevenLabs in Frameworks */ = {isa = PBXBuildFile; productRef = A50000000000000000000005 /* ElevenLabs */; };
+		B10000000000000000000001 /* BilingualReferenceJourneyModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20000000000000000000001 /* BilingualReferenceJourneyModels.swift */; };
+		B10000000000000000000002 /* BilingualReferenceJourneyComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20000000000000000000002 /* BilingualReferenceJourneyComponents.swift */; };
+		B10000000000000000000003 /* BilingualReferenceJourney.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20000000000000000000003 /* BilingualReferenceJourney.swift */; };
+		B10000000000000000000004 /* BilingualReferenceJourneyWordsAndYou.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20000000000000000000004 /* BilingualReferenceJourneyWordsAndYou.swift */; };
+		B10000000000000000000005 /* BilingualReferenceJourneyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20000000000000000000005 /* BilingualReferenceJourneyTests.swift */; };
+		B10000000000000000000006 /* BilingualProductionJourney.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20000000000000000000006 /* BilingualProductionJourney.swift */; };
+		B11000000000000000000001 /* LiveKitWebRTC in Frameworks */ = {isa = PBXBuildFile; productRef = B51000000000000000000001 /* LiveKitWebRTC */; };
+		C10000000000000000000001 /* ProfilePhotoAPI.swift in Sources */ = {isa = PBXBuildFile; fileRef = C20000000000000000000001 /* ProfilePhotoAPI.swift */; };
+		C10000000000000000000002 /* WatercolorProfile.swift in Sources */ = {isa = PBXBuildFile; fileRef = C20000000000000000000002 /* WatercolorProfile.swift */; };
+		C10000000000000000000003 /* WatercolorProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C20000000000000000000003 /* WatercolorProfileView.swift */; };
+		C10000000000000000000004 /* WatercolorProfileDebugFixture.swift in Sources */ = {isa = PBXBuildFile; fileRef = C20000000000000000000004 /* WatercolorProfileDebugFixture.swift */; };
+		C10000000000000000000005 /* WatercolorProfileTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C20000000000000000000005 /* WatercolorProfileTests.swift */; };
+		C23B768794F0E6001DB079A1 /* WingwardTests/LiveVoiceInterviewTransportTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = EFAF6FF4F1942A01BC78CB30 /* WingwardTests/LiveVoiceInterviewTransportTests.swift */; };
+		D10000000000000000000001 /* NotificationModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = D20000000000000000000001 /* NotificationModels.swift */; };
+		D10000000000000000000002 /* NotificationAPI.swift in Sources */ = {isa = PBXBuildFile; fileRef = D20000000000000000000002 /* NotificationAPI.swift */; };
+		D10000000000000000000003 /* NotificationRuntime.swift in Sources */ = {isa = PBXBuildFile; fileRef = D20000000000000000000003 /* NotificationRuntime.swift */; };
+		D10000000000000000000004 /* NotificationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D20000000000000000000004 /* NotificationView.swift */; };
+		D10000000000000000000005 /* NotificationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D20000000000000000000005 /* NotificationTests.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		A90000000000000000000003 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = A80000000000000000000001 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = A60000000000000000000001;
+			remoteInfo = Wingward;
+		};
+		A90000000000000000000004 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = A80000000000000000000001 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = A60000000000000000000001;
+			remoteInfo = Wingward;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		2F375D88813C996C045CD50A /* Wingward/Features/Billing/RevenueCatBillingClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Wingward/Features/Billing/RevenueCatBillingClient.swift; sourceTree = SOURCE_ROOT; };
+		7D94360479E6E9DC5A16A954 /* Wingward/Features/VoiceProfile/LiveVoiceInterviewTransportFactory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Wingward/Features/VoiceProfile/LiveVoiceInterviewTransportFactory.swift; sourceTree = SOURCE_ROOT; };
+		9AAFFC028CD0745CF4C872B2 /* WingwardTests/VoiceProfileNativeBootstrapTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WingwardTests/VoiceProfileNativeBootstrapTests.swift; sourceTree = SOURCE_ROOT; };
+		A20000000000000000000001 /* AppConfiguration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppConfiguration.swift; sourceTree = "<group>"; };
+		A20000000000000000000002 /* AuthContracts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthContracts.swift; sourceTree = "<group>"; };
+		A20000000000000000000003 /* AuthSessionController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthSessionController.swift; sourceTree = "<group>"; };
+		A20000000000000000000004 /* KeychainAuthLocalStorage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainAuthLocalStorage.swift; sourceTree = "<group>"; };
+		A20000000000000000000005 /* ProfileAPI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileAPI.swift; sourceTree = "<group>"; };
+		A20000000000000000000006 /* SupabaseAuthService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SupabaseAuthService.swift; sourceTree = "<group>"; };
+		A20000000000000000000007 /* WingwardApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WingwardApp.swift; sourceTree = "<group>"; };
+		A20000000000000000000008 /* Views.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Views.swift; sourceTree = "<group>"; };
+		A20000000000000000000009 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		A20000000000000000000010 /* AuthSessionControllerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthSessionControllerTests.swift; sourceTree = "<group>"; };
+		A20000000000000000000011 /* ConfigurationSecurityTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConfigurationSecurityTests.swift; sourceTree = "<group>"; };
+		A20000000000000000000012 /* WingwardUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WingwardUITests.swift; sourceTree = "<group>"; };
+		A20000000000000000000013 /* Wingward.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Wingward.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		A20000000000000000000014 /* WingwardTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = WingwardTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		A20000000000000000000015 /* WingwardUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = WingwardUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		A20000000000000000000016 /* Shared.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Shared.xcconfig; sourceTree = "<group>"; };
+		A20000000000000000000017 /* Local.xcconfig.example */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Local.xcconfig.example; sourceTree = "<group>"; };
+		A20000000000000000000018 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		A20000000000000000000019 /* PrivacyManifestTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrivacyManifestTests.swift; sourceTree = "<group>"; };
+		A20000000000000000000020 /* AppRoute.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppRoute.swift; sourceTree = "<group>"; };
+		A20000000000000000000021 /* AuthenticatedAPIClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthenticatedAPIClient.swift; sourceTree = "<group>"; };
+		A20000000000000000000022 /* CoreFoundationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoreFoundationTests.swift; sourceTree = "<group>"; };
+		A20000000000000000000023 /* TeaserJourney.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TeaserJourney.swift; sourceTree = "<group>"; };
+		A20000000000000000000024 /* TeaserJourneyTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TeaserJourneyTests.swift; sourceTree = "<group>"; };
+		A20000000000000000000025 /* OnboardingSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingSettings.swift; sourceTree = "<group>"; };
+		A20000000000000000000026 /* OnboardingSettingsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingSettingsTests.swift; sourceTree = "<group>"; };
+		A20000000000000000000027 /* OnboardingSettingsStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingSettingsStore.swift; sourceTree = "<group>"; };
+		A20000000000000000000028 /* OnboardingSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingSettingsView.swift; sourceTree = "<group>"; };
+		A20000000000000000000029 /* OnboardingSettingsStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingSettingsStoreTests.swift; sourceTree = "<group>"; };
+		A20000000000000000000030 /* ReferenceJourneyModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReferenceJourneyModels.swift; sourceTree = "<group>"; };
+		A20000000000000000000031 /* ReferenceJourneyFixtures.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReferenceJourneyFixtures.swift; sourceTree = "<group>"; };
+		A20000000000000000000032 /* ReferenceJourneyComponents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReferenceJourneyComponents.swift; sourceTree = "<group>"; };
+		A20000000000000000000033 /* ReferenceJourney.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReferenceJourney.swift; sourceTree = "<group>"; };
+		A20000000000000000000034 /* ReferenceJourneyWardAndInsight.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReferenceJourneyWardAndInsight.swift; sourceTree = "<group>"; };
+		A20000000000000000000035 /* ReferenceJourneyHomeAndChat.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReferenceJourneyHomeAndChat.swift; sourceTree = "<group>"; };
+		A20000000000000000000036 /* ReferenceJourneyTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReferenceJourneyTests.swift; sourceTree = "<group>"; };
+		A20000000000000000000037 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		A20000000000000000000038 /* MatchesModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MatchesModels.swift; sourceTree = "<group>"; };
+		A20000000000000000000039 /* MatchesAPI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MatchesAPI.swift; sourceTree = "<group>"; };
+		A20000000000000000000040 /* MatchesStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MatchesStore.swift; sourceTree = "<group>"; };
+		A20000000000000000000041 /* MatchesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MatchesView.swift; sourceTree = "<group>"; };
+		A20000000000000000000042 /* MatchesTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MatchesTests.swift; sourceTree = "<group>"; };
+		A20000000000000000000043 /* MatchDetailModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MatchDetailModels.swift; sourceTree = "<group>"; };
+		A20000000000000000000044 /* MatchDetailAPI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MatchDetailAPI.swift; sourceTree = "<group>"; };
+		A20000000000000000000045 /* MatchDetailStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MatchDetailStore.swift; sourceTree = "<group>"; };
+		A20000000000000000000046 /* MatchDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MatchDetailView.swift; sourceTree = "<group>"; };
+		A20000000000000000000047 /* MatchDetailTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MatchDetailTests.swift; sourceTree = "<group>"; };
+		A20000000000000000000048 /* ConversationInsight.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConversationInsight.swift; sourceTree = "<group>"; };
+		A20000000000000000000049 /* ConversationInsightTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConversationInsightTests.swift; sourceTree = "<group>"; };
+		A20000000000000000000050 /* QuizContracts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuizContracts.swift; sourceTree = "<group>"; };
+		A20000000000000000000051 /* QuizStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuizStore.swift; sourceTree = "<group>"; };
+		A20000000000000000000052 /* QuizView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuizView.swift; sourceTree = "<group>"; };
+		A20000000000000000000053 /* QuizTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuizTests.swift; sourceTree = "<group>"; };
+		A20000000000000000000054 /* NativeFeatureDebugJourney.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NativeFeatureDebugJourney.swift; sourceTree = "<group>"; };
+		A20000000000000000000055 /* NativeFeatureIntegration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NativeFeatureIntegration.swift; sourceTree = "<group>"; };
+		A20000000000000000000056 /* NativeFeatureLiveIntegration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NativeFeatureLiveIntegration.swift; sourceTree = "<group>"; };
+		A20000000000000000000057 /* BillingAPI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BillingAPI.swift; sourceTree = "<group>"; };
+		A20000000000000000000058 /* BillingModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BillingModels.swift; sourceTree = "<group>"; };
+		A20000000000000000000059 /* BillingStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BillingStore.swift; sourceTree = "<group>"; };
+		A20000000000000000000060 /* ChatsAPI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatsAPI.swift; sourceTree = "<group>"; };
+		A20000000000000000000061 /* ChatsModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatsModels.swift; sourceTree = "<group>"; };
+		A20000000000000000000062 /* ChatsStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatsStore.swift; sourceTree = "<group>"; };
+		A20000000000000000000063 /* ChatsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatsView.swift; sourceTree = "<group>"; };
+		A20000000000000000000064 /* MeetupAPI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MeetupAPI.swift; sourceTree = "<group>"; };
+		A20000000000000000000065 /* MeetupModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MeetupModels.swift; sourceTree = "<group>"; };
+		A20000000000000000000066 /* MeetupStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MeetupStore.swift; sourceTree = "<group>"; };
+		A20000000000000000000067 /* MeetupView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MeetupView.swift; sourceTree = "<group>"; };
+		A20000000000000000000068 /* SafetyAPI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SafetyAPI.swift; sourceTree = "<group>"; };
+		A20000000000000000000069 /* SafetyModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SafetyModels.swift; sourceTree = "<group>"; };
+		A20000000000000000000070 /* SafetyStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SafetyStore.swift; sourceTree = "<group>"; };
+		A20000000000000000000071 /* VoiceProfileContracts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VoiceProfileContracts.swift; sourceTree = "<group>"; };
+		A20000000000000000000072 /* VoiceProfileStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VoiceProfileStore.swift; sourceTree = "<group>"; };
+		A20000000000000000000073 /* VoiceProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VoiceProfileView.swift; sourceTree = "<group>"; };
+		A20000000000000000000074 /* BillingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BillingTests.swift; sourceTree = "<group>"; };
+		A20000000000000000000075 /* ChatsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatsTests.swift; sourceTree = "<group>"; };
+		A20000000000000000000076 /* MeetupsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MeetupsTests.swift; sourceTree = "<group>"; };
+		A20000000000000000000077 /* PartnerWardWriteTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PartnerWardWriteTests.swift; sourceTree = "<group>"; };
+		A20000000000000000000078 /* SafetyTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SafetyTests.swift; sourceTree = "<group>"; };
+		A20000000000000000000079 /* VoiceProfileTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VoiceProfileTests.swift; sourceTree = "<group>"; };
+		A20000000000000000000080 /* NativeFeatureIntegrationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NativeFeatureIntegrationTests.swift; sourceTree = "<group>"; };
+		A20000000000000000000081 /* BillingDebugFixture.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BillingDebugFixture.swift; sourceTree = "<group>"; };
+		A20000000000000000000082 /* ChatsDebugFixture.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatsDebugFixture.swift; sourceTree = "<group>"; };
+		A20000000000000000000083 /* MeetupDebugFixture.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MeetupDebugFixture.swift; sourceTree = "<group>"; };
+		A20000000000000000000084 /* SafetyDebugFixture.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SafetyDebugFixture.swift; sourceTree = "<group>"; };
+		A20000000000000000000085 /* VoiceProfileDebugFixture.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VoiceProfileDebugFixture.swift; sourceTree = "<group>"; };
+		A20000000000000000000086 /* NativeFeatureLiveConfigurationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NativeFeatureLiveConfigurationTests.swift; sourceTree = "<group>"; };
+		B20000000000000000000001 /* BilingualReferenceJourneyModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BilingualReferenceJourneyModels.swift; sourceTree = "<group>"; };
+		B20000000000000000000002 /* BilingualReferenceJourneyComponents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BilingualReferenceJourneyComponents.swift; sourceTree = "<group>"; };
+		B20000000000000000000003 /* BilingualReferenceJourney.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BilingualReferenceJourney.swift; sourceTree = "<group>"; };
+		B20000000000000000000004 /* BilingualReferenceJourneyWordsAndYou.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BilingualReferenceJourneyWordsAndYou.swift; sourceTree = "<group>"; };
+		B20000000000000000000005 /* BilingualReferenceJourneyTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BilingualReferenceJourneyTests.swift; sourceTree = "<group>"; };
+		B20000000000000000000006 /* BilingualProductionJourney.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BilingualProductionJourney.swift; sourceTree = "<group>"; };
+		BD6E2011E164047E950929C1 /* Wingward/Features/VoiceProfile/LiveVoiceInterviewTransport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Wingward/Features/VoiceProfile/LiveVoiceInterviewTransport.swift; sourceTree = SOURCE_ROOT; };
+		C20000000000000000000001 /* ProfilePhotoAPI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfilePhotoAPI.swift; sourceTree = "<group>"; };
+		C20000000000000000000002 /* WatercolorProfile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatercolorProfile.swift; sourceTree = "<group>"; };
+		C20000000000000000000003 /* WatercolorProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatercolorProfileView.swift; sourceTree = "<group>"; };
+		C20000000000000000000004 /* WatercolorProfileDebugFixture.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatercolorProfileDebugFixture.swift; sourceTree = "<group>"; };
+		C20000000000000000000005 /* WatercolorProfileTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatercolorProfileTests.swift; sourceTree = "<group>"; };
+		D20000000000000000000001 /* NotificationModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationModels.swift; sourceTree = "<group>"; };
+		D20000000000000000000002 /* NotificationAPI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationAPI.swift; sourceTree = "<group>"; };
+		D20000000000000000000003 /* NotificationRuntime.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationRuntime.swift; sourceTree = "<group>"; };
+		D20000000000000000000004 /* NotificationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationView.swift; sourceTree = "<group>"; };
+		D20000000000000000000005 /* NotificationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationTests.swift; sourceTree = "<group>"; };
+		EFAF6FF4F1942A01BC78CB30 /* WingwardTests/LiveVoiceInterviewTransportTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WingwardTests/LiveVoiceInterviewTransportTests.swift; sourceTree = SOURCE_ROOT; };
+		F940E80BB01014CB7669AD61 /* WingwardTests/RevenueCatBillingClientTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WingwardTests/RevenueCatBillingClientTests.swift; sourceTree = SOURCE_ROOT; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		A30000000000000000000001 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A10000000000000000000009 /* Supabase in Frameworks */,
+				A10000000000000000000090 /* RevenueCat in Frameworks */,
+				A10000000000000000000091 /* ElevenLabs in Frameworks */,
+				B11000000000000000000001 /* LiveKitWebRTC in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A30000000000000000000002 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A30000000000000000000003 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		A40000000000000000000001 = {
+			isa = PBXGroup;
+			children = (
+				A40000000000000000000002 /* Wingward */,
+				A40000000000000000000003 /* . */,
+				A40000000000000000000004 /* WingwardTests */,
+				A40000000000000000000005 /* WingwardUITests */,
+				A40000000000000000000006 /* Config */,
+				A40000000000000000000007 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		A40000000000000000000002 /* Wingward */ = {
+			isa = PBXGroup;
+			children = (
+				A20000000000000000000001 /* AppConfiguration.swift */,
+				A20000000000000000000002 /* AuthContracts.swift */,
+				A20000000000000000000003 /* AuthSessionController.swift */,
+				A20000000000000000000004 /* KeychainAuthLocalStorage.swift */,
+				A20000000000000000000005 /* ProfileAPI.swift */,
+				A20000000000000000000006 /* SupabaseAuthService.swift */,
+				A20000000000000000000007 /* WingwardApp.swift */,
+				A40000000000000000000008 /* Features */,
+				A20000000000000000000009 /* Info.plist */,
+				A20000000000000000000018 /* PrivacyInfo.xcprivacy */,
+			);
+			path = Wingward;
+			sourceTree = "<group>";
+		};
+		A40000000000000000000003 /* . */ = {
+			isa = PBXGroup;
+			children = (
+				A20000000000000000000008 /* Views.swift */,
+			);
+			path = .;
+			sourceTree = "<group>";
+		};
+		A40000000000000000000004 /* WingwardTests */ = {
+			isa = PBXGroup;
+			children = (
+				D20000000000000000000005 /* NotificationTests.swift */,
+				B20000000000000000000005 /* BilingualReferenceJourneyTests.swift */,
+				A20000000000000000000086 /* NativeFeatureLiveConfigurationTests.swift */,
+				9AAFFC028CD0745CF4C872B2 /* WingwardTests/VoiceProfileNativeBootstrapTests.swift */,
+				EFAF6FF4F1942A01BC78CB30 /* WingwardTests/LiveVoiceInterviewTransportTests.swift */,
+				F940E80BB01014CB7669AD61 /* WingwardTests/RevenueCatBillingClientTests.swift */,
+				A20000000000000000000010 /* AuthSessionControllerTests.swift */,
+				A20000000000000000000011 /* ConfigurationSecurityTests.swift */,
+				A20000000000000000000019 /* PrivacyManifestTests.swift */,
+				A20000000000000000000022 /* CoreFoundationTests.swift */,
+				A20000000000000000000024 /* TeaserJourneyTests.swift */,
+				A20000000000000000000026 /* OnboardingSettingsTests.swift */,
+				A20000000000000000000029 /* OnboardingSettingsStoreTests.swift */,
+				A20000000000000000000036 /* ReferenceJourneyTests.swift */,
+				A20000000000000000000042 /* MatchesTests.swift */,
+				A20000000000000000000047 /* MatchDetailTests.swift */,
+				A20000000000000000000049 /* ConversationInsightTests.swift */,
+				A20000000000000000000053 /* QuizTests.swift */,
+				A20000000000000000000074 /* BillingTests.swift */,
+				A20000000000000000000075 /* ChatsTests.swift */,
+				A20000000000000000000076 /* MeetupsTests.swift */,
+				A20000000000000000000077 /* PartnerWardWriteTests.swift */,
+				A20000000000000000000078 /* SafetyTests.swift */,
+				A20000000000000000000079 /* VoiceProfileTests.swift */,
+				A20000000000000000000080 /* NativeFeatureIntegrationTests.swift */,
+				C20000000000000000000005 /* WatercolorProfileTests.swift */,
+			);
+			path = WingwardTests;
+			sourceTree = "<group>";
+		};
+		A40000000000000000000005 /* WingwardUITests */ = {
+			isa = PBXGroup;
+			children = (
+				A20000000000000000000012 /* WingwardUITests.swift */,
+			);
+			path = WingwardUITests;
+			sourceTree = "<group>";
+		};
+		A40000000000000000000006 /* Config */ = {
+			isa = PBXGroup;
+			children = (
+				A20000000000000000000016 /* Shared.xcconfig */,
+				A20000000000000000000017 /* Local.xcconfig.example */,
+			);
+			path = Config;
+			sourceTree = "<group>";
+		};
+		A40000000000000000000007 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				A20000000000000000000013 /* Wingward.app */,
+				A20000000000000000000014 /* WingwardTests.xctest */,
+				A20000000000000000000015 /* WingwardUITests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		A40000000000000000000008 /* Features */ = {
+			isa = PBXGroup;
+			children = (
+				D40000000000000000000001 /* Notifications */,
+				A40000000000000000000009 /* Core */,
+				A40000000000000000000010 /* Teaser */,
+				A40000000000000000000011 /* Onboarding */,
+				A40000000000000000000012 /* ReferenceJourney */,
+				A40000000000000000000013 /* Matches */,
+				A40000000000000000000014 /* Insight */,
+				A40000000000000000000015 /* Quiz */,
+				A40000000000000000000016 /* Billing */,
+				A40000000000000000000017 /* Chats */,
+				A40000000000000000000018 /* Meetups */,
+				A40000000000000000000019 /* Safety */,
+				A40000000000000000000020 /* VoiceProfile */,
+			);
+			path = Features;
+			sourceTree = "<group>";
+		};
+		A40000000000000000000009 /* Core */ = {
+			isa = PBXGroup;
+			children = (
+				A20000000000000000000020 /* AppRoute.swift */,
+				A20000000000000000000021 /* AuthenticatedAPIClient.swift */,
+				A20000000000000000000054 /* NativeFeatureDebugJourney.swift */,
+				A20000000000000000000055 /* NativeFeatureIntegration.swift */,
+				A20000000000000000000056 /* NativeFeatureLiveIntegration.swift */,
+			);
+			path = Core;
+			sourceTree = "<group>";
+		};
+		A40000000000000000000010 /* Teaser */ = {
+			isa = PBXGroup;
+			children = (
+				A20000000000000000000023 /* TeaserJourney.swift */,
+			);
+			path = Teaser;
+			sourceTree = "<group>";
+		};
+		A40000000000000000000011 /* Onboarding */ = {
+			isa = PBXGroup;
+			children = (
+				A20000000000000000000025 /* OnboardingSettings.swift */,
+				A20000000000000000000027 /* OnboardingSettingsStore.swift */,
+				A20000000000000000000028 /* OnboardingSettingsView.swift */,
+			);
+			path = Onboarding;
+			sourceTree = "<group>";
+		};
+		A40000000000000000000012 /* ReferenceJourney */ = {
+			isa = PBXGroup;
+			children = (
+				B20000000000000000000001 /* BilingualReferenceJourneyModels.swift */,
+				B20000000000000000000002 /* BilingualReferenceJourneyComponents.swift */,
+				B20000000000000000000003 /* BilingualReferenceJourney.swift */,
+				B20000000000000000000004 /* BilingualReferenceJourneyWordsAndYou.swift */,
+				B20000000000000000000006 /* BilingualProductionJourney.swift */,
+				A20000000000000000000030 /* ReferenceJourneyModels.swift */,
+				A20000000000000000000031 /* ReferenceJourneyFixtures.swift */,
+				A20000000000000000000032 /* ReferenceJourneyComponents.swift */,
+				A20000000000000000000033 /* ReferenceJourney.swift */,
+				A20000000000000000000034 /* ReferenceJourneyWardAndInsight.swift */,
+				A20000000000000000000035 /* ReferenceJourneyHomeAndChat.swift */,
+				A20000000000000000000037 /* Assets.xcassets */,
+			);
+			path = ReferenceJourney;
+			sourceTree = "<group>";
+		};
+		A40000000000000000000013 /* Matches */ = {
+			isa = PBXGroup;
+			children = (
+				A20000000000000000000038 /* MatchesModels.swift */,
+				A20000000000000000000039 /* MatchesAPI.swift */,
+				A20000000000000000000040 /* MatchesStore.swift */,
+				A20000000000000000000041 /* MatchesView.swift */,
+				A20000000000000000000043 /* MatchDetailModels.swift */,
+				A20000000000000000000044 /* MatchDetailAPI.swift */,
+				A20000000000000000000045 /* MatchDetailStore.swift */,
+				A20000000000000000000046 /* MatchDetailView.swift */,
+			);
+			path = Matches;
+			sourceTree = "<group>";
+		};
+		A40000000000000000000014 /* Insight */ = {
+			isa = PBXGroup;
+			children = (
+				A20000000000000000000048 /* ConversationInsight.swift */,
+			);
+			path = Insight;
+			sourceTree = "<group>";
+		};
+		A40000000000000000000015 /* Quiz */ = {
+			isa = PBXGroup;
+			children = (
+				A20000000000000000000050 /* QuizContracts.swift */,
+				A20000000000000000000051 /* QuizStore.swift */,
+				A20000000000000000000052 /* QuizView.swift */,
+			);
+			path = Quiz;
+			sourceTree = "<group>";
+		};
+		A40000000000000000000016 /* Billing */ = {
+			isa = PBXGroup;
+			children = (
+				2F375D88813C996C045CD50A /* Wingward/Features/Billing/RevenueCatBillingClient.swift */,
+				A20000000000000000000057 /* BillingAPI.swift */,
+				A20000000000000000000058 /* BillingModels.swift */,
+				A20000000000000000000059 /* BillingStore.swift */,
+				A20000000000000000000081 /* BillingDebugFixture.swift */,
+			);
+			path = Billing;
+			sourceTree = "<group>";
+		};
+		A40000000000000000000017 /* Chats */ = {
+			isa = PBXGroup;
+			children = (
+				A20000000000000000000060 /* ChatsAPI.swift */,
+				A20000000000000000000061 /* ChatsModels.swift */,
+				A20000000000000000000062 /* ChatsStore.swift */,
+				A20000000000000000000063 /* ChatsView.swift */,
+				A20000000000000000000082 /* ChatsDebugFixture.swift */,
+			);
+			path = Chats;
+			sourceTree = "<group>";
+		};
+		A40000000000000000000018 /* Meetups */ = {
+			isa = PBXGroup;
+			children = (
+				A20000000000000000000064 /* MeetupAPI.swift */,
+				A20000000000000000000065 /* MeetupModels.swift */,
+				A20000000000000000000066 /* MeetupStore.swift */,
+				A20000000000000000000067 /* MeetupView.swift */,
+				A20000000000000000000083 /* MeetupDebugFixture.swift */,
+			);
+			path = Meetups;
+			sourceTree = "<group>";
+		};
+		A40000000000000000000019 /* Safety */ = {
+			isa = PBXGroup;
+			children = (
+				A20000000000000000000068 /* SafetyAPI.swift */,
+				A20000000000000000000069 /* SafetyModels.swift */,
+				A20000000000000000000070 /* SafetyStore.swift */,
+				A20000000000000000000084 /* SafetyDebugFixture.swift */,
+			);
+			path = Safety;
+			sourceTree = "<group>";
+		};
+		A40000000000000000000020 /* VoiceProfile */ = {
+			isa = PBXGroup;
+			children = (
+				7D94360479E6E9DC5A16A954 /* Wingward/Features/VoiceProfile/LiveVoiceInterviewTransportFactory.swift */,
+				BD6E2011E164047E950929C1 /* Wingward/Features/VoiceProfile/LiveVoiceInterviewTransport.swift */,
+				A20000000000000000000071 /* VoiceProfileContracts.swift */,
+				A20000000000000000000072 /* VoiceProfileStore.swift */,
+				A20000000000000000000073 /* VoiceProfileView.swift */,
+				A20000000000000000000085 /* VoiceProfileDebugFixture.swift */,
+				C20000000000000000000001 /* ProfilePhotoAPI.swift */,
+				C20000000000000000000002 /* WatercolorProfile.swift */,
+				C20000000000000000000003 /* WatercolorProfileView.swift */,
+				C20000000000000000000004 /* WatercolorProfileDebugFixture.swift */,
+			);
+			path = VoiceProfile;
+			sourceTree = "<group>";
+		};
+		D40000000000000000000001 /* Notifications */ = {
+			isa = PBXGroup;
+			children = (
+				D20000000000000000000001 /* NotificationModels.swift */,
+				D20000000000000000000002 /* NotificationAPI.swift */,
+				D20000000000000000000003 /* NotificationRuntime.swift */,
+				D20000000000000000000004 /* NotificationView.swift */,
+			);
+			path = Notifications;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		A60000000000000000000001 /* Wingward */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = A70000000000000000000001 /* Build configuration list for PBXNativeTarget "Wingward" */;
+			buildPhases = (
+				A30000000000000000000004 /* Sources */,
+				A30000000000000000000001 /* Frameworks */,
+				A30000000000000000000005 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = Wingward;
+			packageProductDependencies = (
+				A50000000000000000000001 /* Supabase */,
+				A50000000000000000000003 /* RevenueCat */,
+				A50000000000000000000005 /* ElevenLabs */,
+				B51000000000000000000001 /* LiveKitWebRTC */,
+			);
+			productName = Wingward;
+			productReference = A20000000000000000000013 /* Wingward.app */;
+			productType = "com.apple.product-type.application";
+		};
+		A60000000000000000000002 /* WingwardTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = A70000000000000000000002 /* Build configuration list for PBXNativeTarget "WingwardTests" */;
+			buildPhases = (
+				A30000000000000000000006 /* Sources */,
+				A30000000000000000000002 /* Frameworks */,
+				A30000000000000000000007 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				A90000000000000000000001 /* PBXTargetDependency */,
+			);
+			name = WingwardTests;
+			productName = WingwardTests;
+			productReference = A20000000000000000000014 /* WingwardTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		A60000000000000000000003 /* WingwardUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = A70000000000000000000003 /* Build configuration list for PBXNativeTarget "WingwardUITests" */;
+			buildPhases = (
+				A30000000000000000000008 /* Sources */,
+				A30000000000000000000003 /* Frameworks */,
+				A30000000000000000000009 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				A90000000000000000000002 /* PBXTargetDependency */,
+			);
+			name = WingwardUITests;
+			productName = WingwardUITests;
+			productReference = A20000000000000000000015 /* WingwardUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		A80000000000000000000001 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				LastSwiftUpdateCheck = 1500;
+				LastUpgradeCheck = 1500;
+				TargetAttributes = {
+					A60000000000000000000001 = {
+						CreatedOnToolsVersion = 15.0;
+					};
+					A60000000000000000000002 = {
+						CreatedOnToolsVersion = 15.0;
+						TestTargetID = A60000000000000000000001;
+					};
+					A60000000000000000000003 = {
+						CreatedOnToolsVersion = 15.0;
+						TestTargetID = A60000000000000000000001;
+					};
+				};
+			};
+			buildConfigurationList = A70000000000000000000004 /* Build configuration list for PBXProject "Wingward" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = A40000000000000000000001;
+			packageReferences = (
+				A50000000000000000000002 /* XCRemoteSwiftPackageReference "supabase-swift" */,
+				A50000000000000000000004 /* XCRemoteSwiftPackageReference "purchases-ios-spm" */,
+				A50000000000000000000006 /* XCRemoteSwiftPackageReference "elevenlabs-swift-sdk" */,
+				B51000000000000000000002 /* XCRemoteSwiftPackageReference "webrtc-xcframework" */,
+			);
+			productRefGroup = A40000000000000000000007 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				A60000000000000000000001 /* Wingward */,
+				A60000000000000000000002 /* WingwardTests */,
+				A60000000000000000000003 /* WingwardUITests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		A30000000000000000000005 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A10000000000000000000013 /* PrivacyInfo.xcprivacy in Resources */,
+				A10000000000000000000032 /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A30000000000000000000007 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A30000000000000000000009 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		A30000000000000000000004 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				D10000000000000000000001 /* NotificationModels.swift in Sources */,
+				D10000000000000000000002 /* NotificationAPI.swift in Sources */,
+				D10000000000000000000003 /* NotificationRuntime.swift in Sources */,
+				D10000000000000000000004 /* NotificationView.swift in Sources */,
+				12997A2BA0D789776FD2FF04 /* Wingward/Features/VoiceProfile/LiveVoiceInterviewTransportFactory.swift in Sources */,
+				7306A8F0A3EE3983F42800AD /* Wingward/Features/VoiceProfile/LiveVoiceInterviewTransport.swift in Sources */,
+				17B8809EABF28A0682891577 /* Wingward/Features/Billing/RevenueCatBillingClient.swift in Sources */,
+				A10000000000000000000001 /* AppConfiguration.swift in Sources */,
+				A10000000000000000000002 /* AuthContracts.swift in Sources */,
+				A10000000000000000000003 /* AuthSessionController.swift in Sources */,
+				A10000000000000000000004 /* KeychainAuthLocalStorage.swift in Sources */,
+				A10000000000000000000005 /* ProfileAPI.swift in Sources */,
+				A10000000000000000000006 /* SupabaseAuthService.swift in Sources */,
+				A10000000000000000000007 /* WingwardApp.swift in Sources */,
+				A10000000000000000000008 /* Views.swift in Sources */,
+				A10000000000000000000015 /* AppRoute.swift in Sources */,
+				A10000000000000000000016 /* AuthenticatedAPIClient.swift in Sources */,
+				A10000000000000000000018 /* TeaserJourney.swift in Sources */,
+				A10000000000000000000020 /* OnboardingSettings.swift in Sources */,
+				A10000000000000000000022 /* OnboardingSettingsStore.swift in Sources */,
+				A10000000000000000000023 /* OnboardingSettingsView.swift in Sources */,
+				A10000000000000000000025 /* ReferenceJourneyModels.swift in Sources */,
+				A10000000000000000000026 /* ReferenceJourneyFixtures.swift in Sources */,
+				A10000000000000000000027 /* ReferenceJourneyComponents.swift in Sources */,
+				A10000000000000000000028 /* ReferenceJourney.swift in Sources */,
+				A10000000000000000000029 /* ReferenceJourneyWardAndInsight.swift in Sources */,
+				A10000000000000000000030 /* ReferenceJourneyHomeAndChat.swift in Sources */,
+				B10000000000000000000001 /* BilingualReferenceJourneyModels.swift in Sources */,
+				B10000000000000000000002 /* BilingualReferenceJourneyComponents.swift in Sources */,
+				B10000000000000000000003 /* BilingualReferenceJourney.swift in Sources */,
+				B10000000000000000000004 /* BilingualReferenceJourneyWordsAndYou.swift in Sources */,
+				B10000000000000000000006 /* BilingualProductionJourney.swift in Sources */,
+				A10000000000000000000033 /* MatchesModels.swift in Sources */,
+				A10000000000000000000034 /* MatchesAPI.swift in Sources */,
+				A10000000000000000000035 /* MatchesStore.swift in Sources */,
+				A10000000000000000000036 /* MatchesView.swift in Sources */,
+				A10000000000000000000038 /* MatchDetailModels.swift in Sources */,
+				A10000000000000000000039 /* MatchDetailAPI.swift in Sources */,
+				A10000000000000000000040 /* MatchDetailStore.swift in Sources */,
+				A10000000000000000000041 /* MatchDetailView.swift in Sources */,
+				A10000000000000000000043 /* ConversationInsight.swift in Sources */,
+				A10000000000000000000045 /* QuizContracts.swift in Sources */,
+				A10000000000000000000046 /* QuizStore.swift in Sources */,
+				A10000000000000000000047 /* QuizView.swift in Sources */,
+				A10000000000000000000054 /* NativeFeatureDebugJourney.swift in Sources */,
+				A10000000000000000000055 /* NativeFeatureIntegration.swift in Sources */,
+				A10000000000000000000056 /* NativeFeatureLiveIntegration.swift in Sources */,
+				A10000000000000000000057 /* BillingAPI.swift in Sources */,
+				A10000000000000000000058 /* BillingModels.swift in Sources */,
+				A10000000000000000000059 /* BillingStore.swift in Sources */,
+				A10000000000000000000060 /* ChatsAPI.swift in Sources */,
+				A10000000000000000000061 /* ChatsModels.swift in Sources */,
+				A10000000000000000000062 /* ChatsStore.swift in Sources */,
+				A10000000000000000000063 /* ChatsView.swift in Sources */,
+				A10000000000000000000064 /* MeetupAPI.swift in Sources */,
+				A10000000000000000000065 /* MeetupModels.swift in Sources */,
+				A10000000000000000000066 /* MeetupStore.swift in Sources */,
+				A10000000000000000000067 /* MeetupView.swift in Sources */,
+				A10000000000000000000068 /* SafetyAPI.swift in Sources */,
+				A10000000000000000000069 /* SafetyModels.swift in Sources */,
+				A10000000000000000000070 /* SafetyStore.swift in Sources */,
+				A10000000000000000000071 /* VoiceProfileContracts.swift in Sources */,
+				A10000000000000000000072 /* VoiceProfileStore.swift in Sources */,
+				A10000000000000000000073 /* VoiceProfileView.swift in Sources */,
+				C10000000000000000000001 /* ProfilePhotoAPI.swift in Sources */,
+				C10000000000000000000002 /* WatercolorProfile.swift in Sources */,
+				C10000000000000000000003 /* WatercolorProfileView.swift in Sources */,
+				A10000000000000000000081 /* BillingDebugFixture.swift in Sources */,
+				A10000000000000000000082 /* ChatsDebugFixture.swift in Sources */,
+				A10000000000000000000083 /* MeetupDebugFixture.swift in Sources */,
+				A10000000000000000000084 /* SafetyDebugFixture.swift in Sources */,
+				A10000000000000000000085 /* VoiceProfileDebugFixture.swift in Sources */,
+				C10000000000000000000004 /* WatercolorProfileDebugFixture.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A30000000000000000000006 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				D10000000000000000000005 /* NotificationTests.swift in Sources */,
+				2C87DEE7315A56EDDD8A5296 /* WingwardTests/VoiceProfileNativeBootstrapTests.swift in Sources */,
+				C23B768794F0E6001DB079A1 /* WingwardTests/LiveVoiceInterviewTransportTests.swift in Sources */,
+				185267015DB4923A4F12AD61 /* WingwardTests/RevenueCatBillingClientTests.swift in Sources */,
+				A10000000000000000000086 /* NativeFeatureLiveConfigurationTests.swift in Sources */,
+				A10000000000000000000010 /* AuthSessionControllerTests.swift in Sources */,
+				A10000000000000000000011 /* ConfigurationSecurityTests.swift in Sources */,
+				A10000000000000000000014 /* PrivacyManifestTests.swift in Sources */,
+				A10000000000000000000017 /* CoreFoundationTests.swift in Sources */,
+				A10000000000000000000019 /* TeaserJourneyTests.swift in Sources */,
+				A10000000000000000000021 /* OnboardingSettingsTests.swift in Sources */,
+				A10000000000000000000024 /* OnboardingSettingsStoreTests.swift in Sources */,
+				A10000000000000000000031 /* ReferenceJourneyTests.swift in Sources */,
+				B10000000000000000000005 /* BilingualReferenceJourneyTests.swift in Sources */,
+				A10000000000000000000037 /* MatchesTests.swift in Sources */,
+				A10000000000000000000042 /* MatchDetailTests.swift in Sources */,
+				A10000000000000000000044 /* ConversationInsightTests.swift in Sources */,
+				A10000000000000000000048 /* QuizTests.swift in Sources */,
+				A10000000000000000000074 /* BillingTests.swift in Sources */,
+				A10000000000000000000075 /* ChatsTests.swift in Sources */,
+				A10000000000000000000076 /* MeetupsTests.swift in Sources */,
+				A10000000000000000000077 /* PartnerWardWriteTests.swift in Sources */,
+				A10000000000000000000078 /* SafetyTests.swift in Sources */,
+				A10000000000000000000079 /* VoiceProfileTests.swift in Sources */,
+				A10000000000000000000080 /* NativeFeatureIntegrationTests.swift in Sources */,
+				C10000000000000000000005 /* WatercolorProfileTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A30000000000000000000008 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A10000000000000000000012 /* WingwardUITests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		A90000000000000000000001 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = A60000000000000000000001 /* Wingward */;
+			targetProxy = A90000000000000000000003 /* PBXContainerItemProxy */;
+		};
+		A90000000000000000000002 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = A60000000000000000000001 /* Wingward */;
+			targetProxy = A90000000000000000000004 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		AA0000000000000000000001 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = A20000000000000000000016 /* Shared.xcconfig */;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 337HVH8BA9;
+				ENABLE_TESTABILITY = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = Wingward/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.wingward.app;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.9;
+				TARGETED_DEVICE_FAMILY = 1;
+				WINGWARD_NATIVE_VOICE_BOOTSTRAP = openAIRealtime;
+				WINGWARD_NATIVE_VOICE_ENABLED = true;
+			};
+			name = Debug;
+		};
+		AA0000000000000000000002 /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = A20000000000000000000016 /* Shared.xcconfig */;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 337HVH8BA9;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = Wingward/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.wingward.app;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SWIFT_VERSION = 5.9;
+				TARGETED_DEVICE_FAMILY = 1;
+				WINGWARD_NATIVE_VOICE_BOOTSTRAP = openAIRealtime;
+				WINGWARD_NATIVE_VOICE_ENABLED = true;
+			};
+			name = Release;
+		};
+		AA0000000000000000000003 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.wingward.app.tests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.9;
+				TARGETED_DEVICE_FAMILY = 1;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Wingward.app/Wingward";
+			};
+			name = Debug;
+		};
+		AA0000000000000000000004 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.wingward.app.tests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SWIFT_VERSION = 5.9;
+				TARGETED_DEVICE_FAMILY = 1;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Wingward.app/Wingward";
+			};
+			name = Release;
+		};
+		AA0000000000000000000005 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.wingward.app.uitests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.9;
+				TARGETED_DEVICE_FAMILY = 1;
+				TEST_TARGET_NAME = Wingward;
+			};
+			name = Debug;
+		};
+		AA0000000000000000000006 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.wingward.app.uitests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SWIFT_VERSION = 5.9;
+				TARGETED_DEVICE_FAMILY = 1;
+				TEST_TARGET_NAME = Wingward;
+			};
+			name = Release;
+		};
+		AA0000000000000000000007 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				SDKROOT = iphoneos;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SWIFT_VERSION = 5.9;
+			};
+			name = Debug;
+		};
+		AA0000000000000000000008 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				SDKROOT = iphoneos;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SWIFT_VERSION = 5.9;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		A70000000000000000000001 /* Build configuration list for PBXNativeTarget "Wingward" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				AA0000000000000000000001 /* Debug */,
+				AA0000000000000000000002 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		A70000000000000000000002 /* Build configuration list for PBXNativeTarget "WingwardTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				AA0000000000000000000003 /* Debug */,
+				AA0000000000000000000004 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		A70000000000000000000003 /* Build configuration list for PBXNativeTarget "WingwardUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				AA0000000000000000000005 /* Debug */,
+				AA0000000000000000000006 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		A70000000000000000000004 /* Build configuration list for PBXProject "Wingward" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				AA0000000000000000000007 /* Debug */,
+				AA0000000000000000000008 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		A50000000000000000000002 /* XCRemoteSwiftPackageReference "supabase-swift" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/supabase/supabase-swift.git";
+			requirement = {
+				kind = exactVersion;
+				version = 2.54.1;
+			};
+		};
+		A50000000000000000000004 /* XCRemoteSwiftPackageReference "purchases-ios-spm" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/RevenueCat/purchases-ios-spm";
+			requirement = {
+				kind = exactVersion;
+				version = 5.88.0;
+			};
+		};
+		A50000000000000000000006 /* XCRemoteSwiftPackageReference "elevenlabs-swift-sdk" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/elevenlabs/elevenlabs-swift-sdk.git";
+			requirement = {
+				kind = exactVersion;
+				version = 3.2.2;
+			};
+		};
+		B51000000000000000000002 /* XCRemoteSwiftPackageReference "webrtc-xcframework" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/livekit/webrtc-xcframework.git";
+			requirement = {
+				kind = exactVersion;
+				version = 144.7559.11;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		A50000000000000000000001 /* Supabase */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = A50000000000000000000002 /* XCRemoteSwiftPackageReference "supabase-swift" */;
+			productName = Supabase;
+		};
+		A50000000000000000000003 /* RevenueCat */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = A50000000000000000000004 /* XCRemoteSwiftPackageReference "purchases-ios-spm" */;
+			productName = RevenueCat;
+		};
+		A50000000000000000000005 /* ElevenLabs */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = A50000000000000000000006 /* XCRemoteSwiftPackageReference "elevenlabs-swift-sdk" */;
+			productName = ElevenLabs;
+		};
+		B51000000000000000000001 /* LiveKitWebRTC */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = B51000000000000000000002 /* XCRemoteSwiftPackageReference "webrtc-xcframework" */;
+			productName = LiveKitWebRTC;
+		};
+/* End XCSwiftPackageProductDependency section */
+	};
+	rootObject = A80000000000000000000001 /* Project object */;
+}

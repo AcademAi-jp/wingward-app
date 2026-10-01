@@ -1,0 +1,36 @@
+{
+  "$schema": "https://turbo.build/schema.json",
+  "ui": "tui",
+  "globalPassThroughEnv": ["SUPABASE_*", "VITE_*", "MISTRAL_API_KEY", "CLOUDFLARE_*", "ELEVENLABS_*"],
+  "tasks": {
+    "build": {
+      "dependsOn": ["^build"],
+      "outputs": ["dist/**", ".next/**", "!.next/cache/**", "build/**"]
+    },
+    "dev": {
+      "cache": false,
+      "persistent": true
+    },
+    "lint": {
+      "dependsOn": ["^build"]
+    },
+    "format": {
+      "outputs": []
+    },
+    "check": {
+      "dependsOn": ["^build"]
+    },
+    "check:fix": {
+      "dependsOn": ["^build"],
+      "outputs": []
+    },
+    "test": {
+      "dependsOn": ["^build"],
+      "inputs": ["$TURBO_DEFAULT$", "$TURBO_ROOT$/.github/workflows/**", "$TURBO_ROOT$/.github/CODEOWNERS"],
+      "outputs": ["coverage/**"]
+    },
+    "deploy": {
+      "dependsOn": ["build"]
+    }
+  }
+}

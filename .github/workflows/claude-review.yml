@@ -1,0 +1,286 @@
+name: Claude Review
+
+# Independent review of every pull request, by a different vendor than the one
+# writing the code.
+#
+# WHY THIS EXISTS. From 2026-08-23 the implementer for Track B is Codex, which
+# also owns the `@codex review` GitHub App on this repo. That makes the Codex
+# review same-vendor with the author and no longer an independent check
+# (MODEL-POLICY.md §A-2). This workflow restores the separation the project's
+# results have come from: written by one vendor, checked by another.
+#
+# Actions are pinned to full commit SHAs, per the convention and the reasoning
+# in ci.yml. anthropics/claude-code-action@v1 resolves to c81e3bc.
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review, labeled]
+  issue_comment:
+    types: [created]
+    # NOTE: GitHub runs `issue_comment` workflows from the DEFAULT BRANCH, not
+    # from the pull request's branch. Until this file is on main, a
+    # `@claude review` comment triggers nothing — which looks exactly like the
+    # comment being ignored. Verified on PR #35: the comment produced no run at
+    # all, while two `pull_request` events on the same PR did.
+
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+  checks: write
+  id-token: write
+  actions: read
+
+jobs:
+  review:
+    # Draft pushes do not spend review quota. The separate request-claude-review label
+    # requests a real cumulative review only for a final Draft based on main.
+    # A stacked PR cannot receive inline findings outside its immediate diff.
+    # Runs on ready PR events, and on demand via a top-level `@claude review`
+    # comment. The on-demand path matters because an automated loop needs a way
+    # to ask for a re-review without pushing an empty commit.
+    if: >
+      (github.event_name == 'pull_request' &&
+       github.event.pull_request.head.repo.full_name == github.repository &&
+       contains(fromJSON('["OWNER","MEMBER","COLLABORATOR"]'), github.event.pull_request.author_association) &&
+       (github.event.action != 'labeled' || github.event.label.name == 'request-claude-review') &&
+       (github.event.pull_request.draft == false ||
+        (github.event.pull_request.base.ref == 'main' &&
+         contains(github.event.pull_request.labels.*.name, 'request-claude-review')))) ||
+      (github.event.issue.pull_request != null &&
+       contains(fromJSON('["OWNER","MEMBER","COLLABORATOR"]'), github.event.comment.author_association) &&
+       startsWith(github.event.comment.body, '@claude review'))
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    concurrency:
+      # One review at a time per PR. Without this, a rapid second push starts a
+      # second review against a SHA the first one is still writing comments for,
+      # and the verdict below counts a mixture of the two.
+      group: claude-review-${{ github.event.pull_request.number || github.event.issue.number }}
+      cancel-in-progress: true
+
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          # Full history: the review needs the merge base to see the diff, and
+          # depth 1 gives it only the tip.
+          fetch-depth: 0
+
+      - name: Resolve the head SHA under review
+        id: head
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR: ${{ github.event.pull_request.number || github.event.issue.number }}
+        run: |
+          set -euo pipefail
+          info=$(gh api "repos/${{ github.repository }}/pulls/${PR}")
+          repository=$(printf '%s' "$info" | jq -r '.head.repo.full_name')
+          if [ "$repository" != "${{ github.repository }}" ]; then
+            echo '::error::External pull requests require a separate, credential-free review.'
+            exit 1
+          fi
+          sha=$(printf '%s' "$info" | jq -r '.head.sha')
+          echo "sha=${sha}" >> "$GITHUB_OUTPUT"
+          echo "pr=${PR}" >> "$GITHUB_OUTPUT"
+
+      - name: Fail fast if the review cannot authenticate
+        # Without this, a missing secret produces a review that never runs and
+        # a job that still succeeds: the action skips its own steps and returns
+        # green. The verdict step below then counts zero inline comments and
+        # publishes "no findings" — turning "not reviewed" into "reviewed and
+        # clean", which is the one direction this pipeline must never fail in.
+        #
+        # Observed, not theorised: the first run of this workflow on PR #35 did
+        # exactly that, with `"claude_code_oauth_token": ""` in the log and a
+        # green claude-review check on code no reviewer had read.
+        #
+        # Deliberately placed AFTER the SHA is resolved. The first version ran
+        # this check first, so when it failed the verdict step had no SHA to
+        # publish against and was skipped entirely, leaving no check run at all.
+        # That still failed closed — the gate treats a missing claude-review as
+        # a stop — but "no check" and "the check says this commit is unreviewed"
+        # read very differently to whoever is looking at the pull request.
+        env:
+          TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+        run: |
+          set -euo pipefail
+          if [ -z "${TOKEN}" ]; then
+            echo "::error::CLAUDE_CODE_OAUTH_TOKEN is not set. Create it with /install-github-app or 'claude setup-token'. Refusing to report a verdict on an unreviewed pull request."
+            exit 1
+          fi
+
+      - name: Snapshot the review comments that already exist
+        id: before
+        # The verdict below must describe THIS review, not everything anyone
+        # has ever written on the PR. `@codex review` also runs on this
+        # repository, and its comments sit on the same commits; counting them
+        # made the first real run report "2 untagged" findings that Claude had
+        # not written.
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR: ${{ steps.head.outputs.pr }}
+        run: |
+          set -euo pipefail
+          gh api --paginate "repos/${{ github.repository }}/pulls/${PR}/comments" \
+            --jq '[.[].id]' | jq -s 'add // []' > /tmp/comments-before.json
+          echo "count=$(jq 'length' /tmp/comments-before.json)" >> "$GITHUB_OUTPUT"
+
+      - id: claude
+        uses: anthropics/claude-code-action@1f291e1cfe0f5fc21db2aef19af844591600ade7 # v1
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          # The implementer is a bot. Without this the action rejects the run
+          # before Claude starts, and the symptom is silence rather than an
+          # error — the single easiest way to end up with a review pipeline
+          # that looks configured and never runs.
+          #
+          # Public repositories never allow arbitrary external bot invocations.
+          allowed_bots: "dependabot[bot]"
+          prompt: |
+            Review pull request #${{ steps.head.outputs.pr }} in ${{ github.repository }},
+            at head commit ${{ steps.head.outputs.sha }}.
+
+            If ${{ github.event.pull_request.base.ref == 'main' && contains(github.event.pull_request.labels.*.name, 'request-claude-review') }} is true,
+            this is the final snapshot validation: review the CUMULATIVE changes from
+            the merge base of origin/main and head commit ${{ steps.head.outputs.sha }}
+            through that exact head, including SQL, API, web, and iOS. Do not limit
+            review to the stacked PR's immediate base (which may contain docs only).
+            Read the cumulative diff and relevant files under the same rules below.
+
+            Your review standard is the `## Code Review Rules` section of AGENTS.md
+            in this repository. Read it first and apply it as written, including its
+            "Do not report" list. It is the contract; nothing in this prompt overrides it.
+
+            Two things that section assumes and that you must hold to:
+
+            - Assume an attacker who already holds a valid account.
+            - Give the exploitation scenario as concrete inputs and resulting state,
+              not as a category name.
+
+            Additionally, for every finding, state the negative control: which test
+            fails if the fix is removed. If no test would fail, say so — that absence
+            is itself a finding under P1 item 8.
+
+            HOW TO POST. Post one inline comment per finding, on the line it concerns,
+            and begin each comment with a severity tag in square brackets: `[P0]` or
+            `[P1]`, matching the numbering in AGENTS.md. The tag is parsed downstream
+            to decide whether this PR can merge, so a finding without one is a finding
+            that will be ignored.
+
+            If you find nothing, post no inline comments at all. Do not post a
+            "looks good" comment — silence is the clean signal here, and the verdict
+            is written separately from the comment count.
+
+            Do not push code changes. Findings only.
+          claude_args: |
+            --model claude-opus-5
+            --max-turns 60
+            --allowedTools "mcp__github_inline_comment__create_inline_comment"
+
+      - name: Count findings and publish the verdict
+        # Deliberately not asking Claude to emit a machine-readable verdict line.
+        # A verdict parsed out of model prose breaks the first time the wording
+        # drifts, and it breaks in the unsafe direction: an unparseable line
+        # looks like zero findings. This counts what Claude actually posted,
+        # through the API, and writes the verdict itself.
+        if: always() && steps.head.outputs.sha != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SHA: ${{ steps.head.outputs.sha }}
+          PR: ${{ steps.head.outputs.pr }}
+          REVIEW_OUTCOME: ${{ steps.claude.outcome }}
+          REVIEW_CONCLUSION: ${{ steps.claude.outputs.conclusion }}
+        run: |
+          set -euo pipefail
+
+          # A verdict describes a review that happened. If the review step did
+          # not succeed — failed, cancelled, or skipped because an earlier step
+          # failed — there is nothing to count, and counting anyway yields zero
+          # findings, which reads as clean.
+          #
+          # Publish an explicit failure instead of staying silent, so the
+          # auto-merge gate sees a definite "no" rather than a missing check it
+          # has to interpret.
+          # Two signals, and both must be positive. The step's outcome says the
+          # action did not throw; `outputs.conclusion` is the action's own
+          # statement that Claude Code ran and finished. A green step with no
+          # conclusion is what an action that skipped its work looks like, and
+          # that is the shape that produced a false clean verdict on a6f3da6.
+          if [ "${REVIEW_OUTCOME}" != "success" ] || [ "${REVIEW_CONCLUSION}" != "success" ]; then
+            outcome="step=${REVIEW_OUTCOME} conclusion=${REVIEW_CONCLUSION:-none}"
+            echo "Review did not complete: ${outcome}. Publishing a failed verdict."
+            jq -n --arg sha "$SHA" --arg outcome "$outcome" \
+              '{name: "claude-review", head_sha: $sha, status: "completed",
+                conclusion: "failure",
+                output: {title: ("Review did not run (" + $outcome + ")"),
+                         summary: "No verdict: the review step did not complete, so this commit is unreviewed. Not the same as having no findings."}}' \
+              | gh api "repos/${{ github.repository }}/check-runs" --input - > /dev/null
+            exit 1
+          fi
+
+          # Three filters, each closing a way the count goes wrong:
+          #
+          #   commit_id == SHA   Comments from an earlier push describe code
+          #                      that no longer exists; letting them block
+          #                      would make every fixed PR unmergeable.
+          #   id not in snapshot Only what THIS run produced. Without it the
+          #                      count includes every prior reviewer's history.
+          #   login != codex     `@codex review` runs on the same events and
+          #                      writes to the same commits. Its findings are
+          #                      real and worth reading, but they are not this
+          #                      check's subject, and mixing them made the
+          #                      first real run report two findings Claude had
+          #                      not written. If that login ever changes, the
+          #                      comments start counting as untagged and this
+          #                      check blocks — the safe direction.
+          comments=$(gh api --paginate "repos/${{ github.repository }}/pulls/${PR}/comments" \
+            --jq '[.[] | {id, commit_id, login: .user.login, body}]' \
+            | jq -s 'add // []' \
+            | jq --slurpfile before /tmp/comments-before.json --arg sha "$SHA" '
+                [ .[]
+                  | select(.commit_id == $sha)
+                  | select(.id as $i | ($before[0] | index($i)) | not)
+                  | select(.login != "chatgpt-codex-connector[bot]")
+                  | .body ]')
+
+          # Tolerant of markdown around the tag. The first version matched
+          # `startswith("[P0]")` only, and the reviewer writes some findings as
+          # `**[P0]**`; four genuinely tagged P0/P1 findings were reported as
+          # "untagged" on this very PR. They still blocked, because untagged
+          # blocks — but the counts a human reads were wrong, which is its own
+          # kind of failure.
+          p0=$(echo "$comments" | jq '[.[] | select(test("^\\**\\[P0\\]"))] | length')
+          p1=$(echo "$comments" | jq '[.[] | select(test("^\\**\\[P1\\]"))] | length')
+          total=$(echo "$comments" | jq 'length')
+          untagged=$((total - p0 - p1))
+
+          echo "P0=${p0} P1=${p1} untagged=${untagged} total=${total} sha=${SHA}"
+
+          # Untagged comments count as blocking. A finding Claude wrote without a
+          # severity tag is still a finding, and treating an unrecognised shape as
+          # "clean" is the failure mode this whole step exists to avoid.
+          blocking=$((p0 + p1 + untagged))
+          if [ "$blocking" -eq 0 ]; then
+            conclusion=success
+            title="No findings at ${SHA}"
+          else
+            conclusion=neutral
+            title="${p0} P0, ${p1} P1, ${untagged} untagged at ${SHA}"
+          fi
+
+          # Neutral, never failure: this check reports, it does not gate. The
+          # auto-merge workflow reads it and decides. Keeping it neutral means a
+          # human can still merge a PR with open findings deliberately.
+          #
+          # Built as JSON and piped in, rather than `-f 'output[title]=...'`.
+          # gh's bracket syntax for nested fields is ambiguous enough that a
+          # malformed body would surface as a 422 at the worst moment; jq -n
+          # produces exactly the documented shape.
+          jq -n \
+            --arg conclusion "$conclusion" \
+            --arg sha "$SHA" \
+            --arg title "$title" \
+            --arg summary "blocking=${blocking} p0=${p0} p1=${p1} untagged=${untagged}" \
+            '{name: "claude-review", head_sha: $sha, status: "completed",
+              conclusion: $conclusion, output: {title: $title, summary: $summary}}' \
+            | gh api "repos/${{ github.repository }}/check-runs" --input - > /dev/null

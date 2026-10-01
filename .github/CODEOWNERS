@@ -1,0 +1,51 @@
+# Server-side control over the merge gate.
+#
+# Everything in this repository is auto-merged once CI and the independent
+# Claude review are green, with no human in the loop — except changes to the
+# automation itself.
+#
+# The reason that exception cannot live in a workflow file: a `pull_request`
+# run executes the workflow definition from the PULL REQUEST HEAD, so any guard
+# written in .github/workflows/ can be edited by the very pull request it is
+# meant to stop. Three review rounds on PR #37 found five separate ways
+# through, each one a patch on the previous patch.
+#
+# The sharpest of them is why AGENTS.md is listed below. claude-code-action
+# refuses to run when the workflow file differs from the default branch's copy,
+# so the review workflow itself cannot be tampered with mid-PR. It performs no
+# such check on AGENTS.md — which its prompt names as the review contract, and
+# which `actions/checkout` resolves from the pull request's tree. Protecting
+# where the reviewer lives is not the same as protecting what it obeys.
+#
+# GitHub evaluates CODEOWNERS from the BASE branch. A pull request cannot
+# exempt itself by editing this file, because the copy that decides is main's.
+# That is the whole point, and it is why this is the control and the workflow
+# guard is now only defence in depth.
+#
+# Paired with branch protection: "Require review from Code Owners" on main,
+# with required_approving_review_count intentionally 0 so ordinary pull
+# requests still merge unattended. The approval requirement applies only to
+# pull requests touching the paths below.
+
+# @AcademAi-jp is a personal account, not an organization — checked against
+# the API, because CODEOWNERS silently ignores an organization account and a
+# rule that applies to nobody looks exactly like a rule that is working.
+/.github/ @AcademAi-jp
+
+# The review reads its own standard from the pull request's tree.
+# claude-review.yml's prompt says "your review standard is the `## Code Review
+# Rules` section of AGENTS.md in this repository", and `actions/checkout` on a
+# pull_request event resolves the PR's tree — so a PR that widens AGENTS.md's
+# "Do not report" list neuters the review without touching .github/ at all.
+# Moving the workflow text server-side does not move the data the workflow
+# obeys (Claude review, PR #37 round 3, P0).
+/AGENTS.md @AcademAi-jp
+
+# The tripwires over the merge gate. Deleting a test does not fail CI, so
+# without this a PR could remove the assertions and the guards they cover in
+# the same change.
+/apps/api/src/lib/merge-gate-wiring.test.ts @AcademAi-jp
+
+# The SQL runner, bootstrap, and behavioral tests enforce required database checks.
+# Editing the runner and its tests together can otherwise report skipped SQL as green.
+/scripts/testing/ @AcademAi-jp

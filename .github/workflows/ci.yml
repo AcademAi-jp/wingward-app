@@ -1,0 +1,228 @@
+name: CI
+
+# Actions are pinned to full commit SHAs, not tags. A tag can be silently
+# repointed by its owner, which is how the trivy-action and kics-github-action
+# compromises reached downstream repositories. Dependabot (.github/dependabot.yml)
+# proposes SHA bumps weekly, so pinning does not mean going stale.
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review, labeled]
+  push:
+    branches: [main]
+
+# Least privilege for GITHUB_TOKEN. Without this block the token takes the
+# repository default, which is write across every scope — so a compromised
+# dependency in any CI job could push to main or open a release.
+# None of them writes anything: they install, build, test and scan.
+#
+# The two workflows added in #35 declare their own permissions and are
+# unaffected by this.
+permissions:
+  contents: read
+
+# Cancel superseded runs for the same PR; pushes use their own branch group.
+concurrency:
+  group: ci-${{ github.event.action == 'labeled' && github.event.label.name != 'full-validation' && github.event.label.name || github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+# Unrelated labeled events use separate names so a skipped event cannot replace
+# real validation check names on the same head. No validation jobs are run.
+# Skipped Draft checks are UNVALIDATED: Auto Merge requires conclusion=success.
+# GitHub branch protection alone may accept skipped checks; never treat that
+# as a completed validation. full-validation runs the actual unchanged checks.
+jobs:
+  build-test:
+    name: build-test${{ github.event_name == 'pull_request' && github.event.action == 'labeled' && github.event.label.name != 'full-validation' && ' / Unvalidated label event' || '' }}
+    if: (github.event_name != 'pull_request' || github.event.action != 'labeled' || github.event.label.name == 'full-validation') && (github.event_name != 'pull_request' || github.event.pull_request.draft == false || contains(github.event.pull_request.labels.*.name, 'full-validation'))
+    timeout-minutes: 10
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: public.ecr.aws/supabase/postgres:17.6.1.155
+        env:
+          POSTGRES_HOST_AUTH_METHOD: trust
+        options: >-
+          --health-cmd "pg_isready -U postgres -d postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      # v6, not the v4 the repo used before: the base64 sha512 in our
+      # packageManager string contains a "/", and the v4 self-installer parses
+      # that as a git spec and tries to clone it. Pinning exposed how stale the
+      # floating v4 tag had become.
+      - uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6.0.10
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22
+          cache: pnpm
+      # Root scripts wrap turbo in `mise exec --`, so mise must be on PATH here too.
+      - uses: jdx/mise-action@c2a87611a18de5b3828c5652fe268e992400cb5c # v4.3.0
+        with:
+          experimental: true
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm build
+      - run: pnpm test
+      - name: Execute migration and SQL authorization tests
+        shell: bash
+        env:
+          SQL_TEST_CONTAINER: ${{ job.services.postgres.id }}
+        run: |
+          set -euo pipefail
+          node --test scripts/testing/run-sql-tests.test.mjs scripts/testing/actions-cost-control.test.mjs
+          bash scripts/testing/run-sql-tests.sh "$SQL_TEST_CONTAINER"
+
+  semgrep:
+    name: semgrep${{ github.event_name == 'pull_request' && github.event.action == 'labeled' && github.event.label.name != 'full-validation' && ' / Unvalidated label event' || '' }}
+    if: (github.event_name != 'pull_request' || github.event.action != 'labeled' || github.event.label.name == 'full-validation') && (github.event_name != 'pull_request' || github.event.pull_request.draft == false || contains(github.event.pull_request.labels.*.name, 'full-validation'))
+    timeout-minutes: 5
+    runs-on: ubuntu-latest
+    container: semgrep/semgrep
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      # Blocks on WARNING and above. The step-1 backlog of 36 WARNING/INFO
+      # findings was triaged in docs/security-triage.md: 11 were fixed, and the
+      # 25 unsafe-formatstring findings were accepted with a recorded reason,
+      # which is why that one rule is excluded here rather than the severity
+      # being lowered. Do not add exclusions without an entry in that document.
+      - run: >
+          semgrep scan --config auto --severity WARNING --error
+          --exclude supabase/tests
+          --exclude-rule javascript.lang.security.audit.unsafe-formatstring.unsafe-formatstring
+      # Full unfiltered scan, reported but not blocking, so that newly
+      # introduced INFO findings stay visible in the log.
+      - run: semgrep scan --config auto --exclude supabase/tests || true
+
+  gitleaks:
+    name: gitleaks${{ github.event_name == 'pull_request' && github.event.action == 'labeled' && github.event.label.name != 'full-validation' && ' / Unvalidated label event' || '' }}
+    if: (github.event_name != 'pull_request' || github.event.action != 'labeled' || github.event.label.name == 'full-validation') && (github.event_name != 'pull_request' || github.event.pull_request.draft == false || contains(github.event.pull_request.labels.*.name, 'full-validation'))
+    timeout-minutes: 5
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+      # The gitleaks CLI image is used directly: gitleaks-action requires a paid
+      # license for organization accounts, the CLI itself does not.
+      - run: |
+          docker run --rm -v "$PWD:/repo" zricethezav/gitleaks:latest \
+            detect --source=/repo --redact --no-banner --exit-code 1
+
+  ios-test-detect:
+    name: Detect iOS changes${{ github.event_name == 'pull_request' && github.event.action == 'labeled' && github.event.label.name != 'full-validation' && ' / Unvalidated label event' || '' }}
+    if: (github.event_name != 'pull_request' || github.event.action != 'labeled' || github.event.label.name == 'full-validation') && (github.event_name != 'pull_request' || github.event.pull_request.draft == false || contains(github.event.pull_request.labels.*.name, 'full-validation'))
+    timeout-minutes: 2
+    runs-on: ubuntu-latest
+    outputs:
+      changed: ${{ steps.detect.outputs.changed }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+      - id: detect
+        name: Check apps/ios path
+        shell: bash
+        env:
+          FORCE_IOS: ${{ contains(github.event.pull_request.labels.*.name, 'full-validation') }}
+          EVENT_NAME: ${{ github.event_name }}
+          BEFORE_SHA: ${{ github.event.before }}
+          PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          HEAD_SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+
+          initial_push=false
+
+          if [[ "$EVENT_NAME" == "pull_request" ]]; then
+            base="$PR_BASE_SHA"
+            head="$PR_HEAD_SHA"
+          else
+            base="$BEFORE_SHA"
+            head="$HEAD_SHA"
+            if [[ "$base" =~ ^0+$ ]]; then
+              initial_push=true
+              base="$head"
+            fi
+          fi
+
+          if [[ -z "$base" || -z "$head" ]]; then
+            echo "::error::Unable to determine the commits for iOS change detection."
+            exit 1
+          fi
+          git cat-file -e "${head}^{commit}"
+
+          # A replaced single-commit snapshot has no parent, and its previous
+          # root may no longer be reachable after checkout. Test all its iOS
+          # files just as on the first import, without depending on that root.
+          if [[ "$EVENT_NAME" == "push" && -z "$(git show -s --format=%P "$head")" ]]; then
+            initial_push=true
+            base="$head"
+          fi
+          git cat-file -e "${base}^{commit}"
+
+          if [[ "$initial_push" == "true" ]]; then
+            changed_files=$(git ls-tree -r --name-only "$head" -- apps/ios/)
+          else
+            changed_files=$(git diff --name-only "$base" "$head" -- apps/ios/)
+          fi
+          if [[ "${FORCE_IOS:-false}" == "true" || -n "$changed_files" ]]; then
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+            echo "apps/ios changed or full-validation requested; simulator XCTest is required."
+          else
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            echo "apps/ios did not change; the simulator XCTest job will be skipped."
+          fi
+
+  ios-test-run:
+    name: Run iOS XCTest${{ github.event_name == 'pull_request' && github.event.action == 'labeled' && github.event.label.name != 'full-validation' && ' / Unvalidated label event' || '' }}
+    needs: ios-test-detect
+    if: needs.ios-test-detect.result == 'success' && needs.ios-test-detect.outputs.changed == 'true' && ((github.event_name != 'pull_request' || github.event.action != 'labeled' || github.event.label.name == 'full-validation') && (github.event_name != 'pull_request' || github.event.pull_request.draft == false || contains(github.event.pull_request.labels.*.name, 'full-validation')))
+    runs-on: macos-15
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Test Wingward on iOS Simulator
+        shell: bash
+        run: |
+          set -o pipefail
+          test -f apps/ios/Wingward.xcodeproj/xcshareddata/xcschemes/Wingward.xcscheme
+          xcodebuild test \
+            -project apps/ios/Wingward.xcodeproj \
+            -scheme Wingward \
+            -destination 'platform=iOS Simulator,name=iPhone 16,OS=latest' \
+            -derivedDataPath "$RUNNER_TEMP/WingwardDerivedData" \
+            ONLY_ACTIVE_ARCH=YES \
+            ARCHS=arm64
+
+  ios-test:
+    name: ios-test${{ github.event_name == 'pull_request' && github.event.action == 'labeled' && github.event.label.name != 'full-validation' && ' / Unvalidated label event' || '' }}
+    if: always() && ((github.event_name != 'pull_request' || github.event.action != 'labeled' || github.event.label.name == 'full-validation') && (github.event_name != 'pull_request' || github.event.pull_request.draft == false || contains(github.event.pull_request.labels.*.name, 'full-validation')))
+    needs: [ios-test-detect, ios-test-run]
+    timeout-minutes: 2
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require the correct iOS test outcome
+        shell: bash
+        env:
+          DETECT_RESULT: ${{ needs.ios-test-detect.result }}
+          IOS_CHANGED: ${{ needs.ios-test-detect.outputs.changed }}
+          TEST_RESULT: ${{ needs.ios-test-run.result }}
+        run: |
+          set -euo pipefail
+
+          if [[ "$DETECT_RESULT" != "success" ]]; then
+            echo "::error::iOS change detection failed; refusing to report ios-test success."
+            exit 1
+          fi
+          if [[ "$IOS_CHANGED" == "true" && "$TEST_RESULT" != "success" ]]; then
+            echo "::error::apps/ios changed but the simulator XCTest job was not successful (result: $TEST_RESULT)."
+            exit 1
+          fi
+          if [[ "$IOS_CHANGED" != "true" && "$TEST_RESULT" != "skipped" ]]; then
+            echo "::error::Unexpected iOS test result for a non-iOS change: $TEST_RESULT."
+            exit 1
+          fi
+          echo "ios-test aggregate passed: changed=$IOS_CHANGED, test_result=$TEST_RESULT."

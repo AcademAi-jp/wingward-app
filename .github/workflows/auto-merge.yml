@@ -1,0 +1,295 @@
+name: Auto Merge
+
+# Merges a pull request once every machine-checkable condition is met, with no
+# human in the loop (user decision, 2026-08-23).
+#
+# WHAT THIS DOES NOT DO: it does not deploy. `wrangler deploy` stays a manual,
+# per-run-approved action, so merging moves code into main and nothing into
+# production. That is what makes automating the merge acceptable at all.
+#
+# Actions are pinned to full commit SHAs, per ci.yml's reasoning.
+
+# TRIGGER: `workflow_run`, and the choice is load-bearing twice over.
+#
+# Not `pull_request`: those events run the workflow definition FROM THE PULL
+# REQUEST HEAD, so the copy of this gate deciding whether a PR is safe would be
+# the copy that PR shipped — delete the guard below and the edited gate merges
+# it (Claude review, PR #37 round 2, P0).
+#
+# Not `check_run` either, which was the first attempt at fixing that. It runs
+# from the default branch correctly, but it never fires: GitHub does not
+# trigger workflows from events created with GITHUB_TOKEN, and every check here
+# is — the CI checks, and claude-review, which the review workflow mints
+# itself. Verified by watching PR #38 sit CLEAN with five green checks and no
+# Auto Merge run at all.
+#
+# `workflow_run` also runs from the default branch, and does fire on the
+# completion of a workflow that a pull_request event started.
+on:
+  workflow_run:
+    workflows: [CI, "Claude Review"]
+    types: [completed]
+
+permissions:
+  contents: write
+  pull-requests: write
+  checks: read
+
+jobs:
+  evaluate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Merge every open pull request that has earned it
+        # Evaluates ALL open pull requests rather than the one the event names.
+        #
+        # Identifying "the" pull request from the trigger kept failing, and the
+        # last failure is why this is written the other way round: a review
+        # started by a `@claude review` comment is an `issue_comment` run, so
+        # its head_sha is the DEFAULT BRANCH, `workflow_run.pull_requests` is
+        # empty, and the gate exited with "No pull request attached to this
+        # event" while Dependabot PR #9 sat green and unmerged.
+        #
+        # Scanning is also self-healing: a pull request that became mergeable
+        # while nothing was watching gets picked up by the next workflow
+        # completion, instead of waiting for an event that already passed.
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          UPDATE_TOKEN: ${{ secrets.AUTOMERGE_UPDATE_TOKEN }}
+        run: |
+          set -euo pipefail
+
+          open_prs=$(gh pr list --repo "$REPO" --state open --limit 50 --json number --jq '.[].number')
+          if [ -z "$open_prs" ]; then
+            echo "No open pull requests."
+            exit 0
+          fi
+
+          # At most one branch update per run. With `strict` branch protection
+          # most stale PRs are BEHIND at once, and updating all of them fires a
+          # CI run each — a stampede that also invalidates the very checks this
+          # gate just read.
+          updated_one=false
+
+          # Set when the gate could not do something it needed to do. Checked
+          # after the loop, because a run that failed to clear BEHIND has not
+          # merged anything and must not report success for it.
+          update_failed=false
+
+          for pr in $open_prs; do
+            info=$(gh pr view "$pr" --repo "$REPO" \
+              --json state,isDraft,labels,headRefOid,mergeStateStatus,mergeable,author)
+
+            draft=$(echo "$info" | jq -r '.isDraft')
+            sha=$(echo "$info" | jq -r '.headRefOid')
+            mergeable=$(echo "$info" | jq -r '.mergeable')
+            merge_state=$(echo "$info" | jq -r '.mergeStateStatus')
+            author=$(echo "$info" | jq -r '.author.login')
+
+            # `gh pr view` renders Dependabot as `app/dependabot`; the REST API
+            # calls the same account `dependabot[bot]`. Both spellings are
+            # matched, because picking one and being wrong raises no error — it
+            # silently routes Dependabot's branches back to the push that
+            # created the problem below.
+            case "$author" in
+              "app/dependabot"|"dependabot[bot]") pr_is_dependabot=true ;;
+              *) pr_is_dependabot=false ;;
+            esac
+
+            if [ "$draft" != "false" ]; then
+              echo "#${pr}: draft. Skipping."
+              continue
+            fi
+
+            if echo "$info" | jq -e '.labels[] | select(.name == "no-auto-merge")' > /dev/null; then
+              echo "#${pr}: labelled no-auto-merge. Skipping."
+              continue
+            fi
+
+            # Public forks and outside authors cannot use this privileged gate.
+            pr_scope=$(gh api "repos/${REPO}/pulls/${pr}" --jq '[.head.repo.full_name, .author_association] | @tsv')
+            IFS=$'\t' read -r head_repository association <<< "$pr_scope"
+            if [ "$head_repository" != "$REPO" ]; then
+              echo "#${pr}: external head. Requires manual review."
+              continue
+            fi
+            case "$association" in OWNER|MEMBER|COLLABORATOR) ;; *) continue ;; esac
+
+            # ---- Paths a machine does not merge unattended ------------------
+            # `.github/` changes the automation itself, and AGENTS.md is the
+            # contract the review obeys — a pull_request run reads both from
+            # the pull request's own tree, so a change here is judged by the
+            # copy it shipped. merge-gate-wiring.test.ts holds the tripwires,
+            # and deleting a test does not fail CI. scripts/testing/ holds the SQL
+            # runner, bootstrap permission model, and its behavioral tripwires.
+            #
+            # The fetch and the match are separate on purpose: written as one
+            # pipeline, the `|| true` that grep needs would also swallow a
+            # failing `gh api`, and an empty result from a failed fetch is
+            # indistinguishable from a pull request that touches none of these.
+            if ! changed=$(gh api --paginate "repos/${REPO}/pulls/${pr}/files" --jq '.[].filename'); then
+              echo "#${pr}: could not list changed files. Refusing to decide without them."
+              continue
+            fi
+            protected=$(echo "$changed" | grep -E '^(\.github/|AGENTS\.md$|apps/api/src/lib/merge-gate-wiring\.test\.ts$|scripts/testing/)' | paste -sd ", " - || true)
+            if [ -n "$protected" ]; then
+              echo "#${pr}: touches ${protected}. Parking for a person."
+              gh label create "no-auto-merge" --repo "$REPO" --color "B60205" \
+                --description "Auto-merge stops here; a person decides." 2>/dev/null || true
+              gh pr edit "$pr" --repo "$REPO" --add-label "no-auto-merge" || true
+              continue
+            fi
+
+            # ---- Strict protection: behind means update, BEFORE reading checks
+            # Order matters, and getting it wrong is why Dependabot PR #9 sat
+            # BEHIND through three separate fixes. Evaluating the required
+            # checks first means a stale PR fails on "build-test is missing"
+            # and `continue`s — never reaching the branch update that is the
+            # only thing which would produce those checks. Being behind is the
+            # CAUSE of the missing checks, so it has to be handled first.
+            # ---- Strict protection: behind means update, not merge ----------
+            if [ "$merge_state" = "BEHIND" ]; then
+              if [ "$updated_one" = true ]; then
+                echo "#${pr}: behind, but a branch was already updated this run. Next time."
+                continue
+              fi
+              # Everything below runs on a PAT, not GITHUB_TOKEN, and that is
+              # the whole point of the extra secret. GitHub raises no workflow
+              # events for anything done with GITHUB_TOKEN, so a branch updated
+              # with it gets a new head that CI never runs on — and under
+              # `strict` protection that head can never satisfy the required
+              # checks. Dependabot PR #9 sat BLOCKED on exactly that, with
+              # "build-test is missing" against a commit no workflow had seen.
+              #
+              # The token is scoped to this repository and nothing else. It
+              # cannot touch workflows, secrets or protection settings; the
+              # merge itself still runs on GITHUB_TOKEN.
+              #
+              # There is deliberately no GITHUB_TOKEN fallback. The old one
+              # read as a graceful degrade and was not: it produced a head no
+              # workflow had seen, which under `strict` protection can never
+              # merge. A gate that cannot clear BEHIND cannot do its job, so it
+              # says so and fails instead of reporting success.
+              if [ -z "${UPDATE_TOKEN:-}" ]; then
+                echo "::error::#${pr}: behind main, and AUTOMERGE_UPDATE_TOKEN is not set. The gate cannot clear BEHIND, so nothing will ever merge."
+                update_failed=true
+                continue
+              fi
+
+              # A Dependabot branch belongs to Dependabot. Pushing a merge
+              # commit onto one — which is what `gh pr update-branch` does —
+              # makes Dependabot stop maintaining it: "By default, Dependabot
+              # will stop rebasing a pull request once extra commits have been
+              # pushed to it" (GitHub Docs, "Managing pull requests for
+              # dependency updates"). PR #8 reached exactly that state. Our own
+              # update commit was the extra commit, so when a sibling merge put
+              # a conflict in the lockfile, `@dependabot rebase` answered "this
+              # PR has been edited by someone other than Dependabot" and no
+              # path was left that did not involve a person.
+              #
+              # Asking Dependabot to rebase leaves the branch Dependabot's, and
+              # does NOT bring back the GITHUB_TOKEN problem: our token is not
+              # what pushes. Dependabot force-pushes as `dependabot[bot]`, and
+              # that push raises the pull_request event CI runs on, exactly as
+              # it did when the pull request was opened.
+              #
+              # The comment goes out on the PAT rather than GITHUB_TOKEN.
+              # GitHub does not document who may issue a Dependabot command, so
+              # this rests on what was observed instead: a PAT-authored
+              # `@dependabot rebase` on PR #8 drew a reply within seconds.
+              # Nothing here needs the comment to trigger a workflow.
+              if [ "$pr_is_dependabot" = true ]; then
+                # Ask once per head commit. Dependabot is allowed to decline —
+                # an already-edited branch is the case that produced this code
+                # — and a gate that re-asked every run would comment forever.
+                if ! head_date=$(gh api "repos/${REPO}/commits/${sha}" --jq '.commit.committer.date'); then
+                  echo "::error::#${pr}: could not read the head commit date. Refusing to comment blind."
+                  update_failed=true
+                  continue
+                fi
+                if ! comments=$(gh api --paginate "repos/${REPO}/issues/${pr}/comments"); then
+                  echo "::error::#${pr}: could not list comments. Refusing to comment blind."
+                  update_failed=true
+                  continue
+                fi
+                asked=$(echo "$comments" | jq --arg d "$head_date" \
+                  '[.[] | select(.body | startswith("@dependabot rebase")) | select(.created_at > $d)] | length')
+                if [ "$asked" != "0" ]; then
+                  echo "#${pr}: already asked Dependabot to rebase since ${sha}. Waiting."
+                  continue
+                fi
+                echo "#${pr}: behind main, and Dependabot owns the branch. Asking it to rebase rather than pushing to it."
+                if ! GH_TOKEN="$UPDATE_TOKEN" gh pr comment "$pr" --repo "$REPO" --body "@dependabot rebase"; then
+                  echo "::error::#${pr}: could not ask Dependabot to rebase."
+                  update_failed=true
+                  continue
+                fi
+                updated_one=true
+                continue
+              fi
+
+              echo "#${pr}: behind main. Updating with the dedicated token; CI and the review re-run from there."
+              # Written as an `if`, not `cmd && updated_one=true`. Under
+              # `set -e` the left side of an `&&` is exempt from the exit-on-
+              # error rule, so the old spelling swallowed the failure whole:
+              # the branch update failed on every pull request for a day — the
+              # PAT lacked `Pull requests: write`, and every call answered
+              # "Resource not accessible by personal access token" — while the
+              # job concluded success and five Dependabot PRs sat BEHIND behind
+              # a green gate.
+              if GH_TOKEN="$UPDATE_TOKEN" gh pr update-branch "$pr" --repo "$REPO"; then
+                updated_one=true
+              else
+                echo "::error::#${pr}: branch update FAILED. The gate cannot clear BEHIND."
+                update_failed=true
+              fi
+              continue
+            fi
+
+            # ---- Required checks, at this exact SHA -------------------------
+            checks=$(gh api "repos/${REPO}/commits/${sha}/check-runs" --paginate \
+              --jq '[.check_runs[] | select(.app.slug == "github-actions") | {name, status, conclusion}]')
+
+            blocked=false
+            for name in build-test semgrep gitleaks ios-test; do
+              c=$(echo "$checks" | jq -r --arg n "$name" \
+                '[.[] | select(.name == $n)] | last | .conclusion // "missing"')
+              if [ "$c" != "success" ]; then
+                echo "#${pr}: ${name} is ${c}."
+                blocked=true
+              fi
+            done
+            $blocked && continue
+
+            # ---- The independent review, at this exact SHA ------------------
+            # Absence is not consent. A missing claude-review means this code
+            # has not been reviewed, which is not the same as having no
+            # findings.
+            review=$(echo "$checks" | jq -r \
+              '[.[] | select(.name == "claude-review")] | last | .conclusion // "missing"')
+            if [ "$review" != "success" ]; then
+              echo "#${pr}: claude-review is ${review} at ${sha}."
+              continue
+            fi
+
+            if [ "$mergeable" != "MERGEABLE" ]; then
+              echo "#${pr}: mergeable=${mergeable}, state=${merge_state}."
+              continue
+            fi
+
+            # ---- Merge, pinned to the commit that was verified --------------
+            # `gh pr merge` alone takes the branch's CURRENT head, so a push
+            # landing since the checks completed would merge unverified code.
+            echo "#${pr}: all conditions met at ${sha}. Merging."
+            gh pr merge "$pr" --repo "$REPO" --squash --delete-branch \
+              --match-head-commit "$sha"
+          done
+
+          # A gate that could not clear BEHIND is broken, not idle. Reporting
+          # success for it is the exact failure this run is fixing: for a whole
+          # day every branch update failed and every run was green.
+          if [ "$update_failed" = true ]; then
+            echo "::error::The gate could not update at least one stale branch. Nothing above it can merge until that is fixed."
+            exit 1
+          fi

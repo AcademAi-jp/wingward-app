@@ -1,0 +1,22 @@
+import {afterEach,beforeEach,describe,expect,it,vi} from "vitest";
+import type {Context} from "hono";import type {Env} from "../env";
+const calls=vi.hoisted(()=>({ordinary:vi.fn(),bounded:vi.fn()}));
+vi.mock("./mistral",()=>({chatComplete:(...x:unknown[])=>calls.ordinary(...x),chatCompleteOnceBounded:(...x:unknown[])=>calls.bounded(...x),MISTRAL_REQUEST_TOKEN_OVERHEAD:1024}));
+import {judgeChatComplete} from "./judge-chat-complete";
+const ACTOR="11111111-1111-4111-8111-111111111111",BOT="22222222-2222-4222-8222-222222222222",RID="33333333-3333-4333-8333-333333333333",NOW=Date.parse("2026-09-30T19:00:00Z");
+const env={JUDGE_ACCESS_ENABLED:"enabled",JUDGE_ACCESS_COHORT:["shipaton", "20261001"].join("-"),JUDGE_ACCESS_ISSUED_AT:"2026-09-30T18:00:00Z",JUDGE_ACCESS_EXPIRES_AT:"2026-10-13T19:00:00Z",JUDGE_ACCESS_AI_EXPIRES_AT:"2026-10-01T00:00:00Z"};
+const access={actorId:ACTOR,counterpartId:BOT,accountKind:"judge",expiresAtMs:Date.parse(env.JUDGE_ACCESS_EXPIRES_AT)};
+const member={outcome:"allowed",actor_user_id:ACTOR,counterpart_user_id:BOT,account_kind:"judge",expires_at:env.JUDGE_ACCESS_EXPIRES_AT};
+function context(current:unknown=access,bindings:unknown=env){return {env:bindings,get:(key:string)=>key==="judge_access"?current:ACTOR} as unknown as Context<Env>;}
+function client(outcome="allowed"){return{rpc:vi.fn(async(name:string)=>({error:null,data:[name==="check_judge_access"?member:{outcome,reservation_id:RID,max_units:20000,max_seconds:0}]}))};}
+async function drain<T>(promise:Promise<T>){await vi.runAllTimersAsync();return promise;}
+beforeEach(()=>{vi.useFakeTimers();vi.setSystemTime(NOW);vi.clearAllMocks();calls.ordinary.mockResolvedValue("ordinary");calls.bounded.mockResolvedValue({content:"bounded"});});afterEach(()=>vi.useRealTimers());
+describe("judge paid text boundary",()=>{
+ it("preserves ordinary calls when registration is absent",async()=>{const rpc=client();expect(await judgeChatComplete(context(null,{}),rpc,"ward_chat","fixture",[{role:"user",content:"hello"}],{maxTokens:512})).toBe("ordinary");expect(rpc.rpc).not.toHaveBeenCalled();expect(calls.bounded).not.toHaveBeenCalled();});
+ it("never falls back to ordinary provider when configured registry context is missing",async()=>{await expect(judgeChatComplete(context(null),client(),"ward_chat","fixture",[])).rejects.toThrow("access unavailable");expect(calls.ordinary).not.toHaveBeenCalled();expect(calls.bounded).not.toHaveBeenCalled();});
+ it("reserves one durable operation with token bounds and no ordinary retry",async()=>{const rpc=client();expect(await drain(judgeChatComplete(context(),rpc,"ward_chat","fixture",[{role:"user",content:"hello"}],{maxTokens:512}))).toBe("bounded");expect(calls.ordinary).not.toHaveBeenCalled();expect(calls.bounded).toHaveBeenCalledOnce();expect(calls.bounded.mock.calls[0][2]).toMatchObject({maxTokens:512,maxTotalTokenUnits:20000,maxRequestBytes:18464,maxResponseBytes:32768});expect(rpc.rpc.mock.calls.map(x=>x[0])).toEqual(["check_judge_access","reserve_judge_provider_operation","check_judge_access"]);});
+ it.each(["denied","unknown","expired","replayed"])("makes no provider request when budget is %s",async outcome=>{const promise=expect(judgeChatComplete(context(),client(outcome),"ward_chat","fixture",[])).rejects.toThrow("budget unavailable");await vi.runAllTimersAsync();await promise;expect(calls.bounded).not.toHaveBeenCalled();expect(calls.ordinary).not.toHaveBeenCalled();});
+ it("fails closed when membership is removed before reservation",async()=>{const rpc={rpc:vi.fn(async()=>({error:null,data:[{outcome:"denied"}]}))};await expect(judgeChatComplete(context(),rpc,"ward_chat","fixture",[])).rejects.toThrow("access unavailable");expect(calls.bounded).not.toHaveBeenCalled();});
+ it("never refunds or retries a failed accepted fetch",async()=>{calls.bounded.mockRejectedValue(new Error("provider failure"));const rpc=client();const promise=expect(judgeChatComplete(context(),rpc,"ward_chat","fixture",[])).rejects.toThrow("provider failure");await vi.runAllTimersAsync();await promise;expect(calls.bounded).toHaveBeenCalledOnce();expect(rpc.rpc.mock.calls.map(x=>x[0])).toEqual(["check_judge_access","reserve_judge_provider_operation"]);});
+ it("discards output after membership expiry",async()=>{calls.bounded.mockImplementation(async()=>{vi.setSystemTime(access.expiresAtMs);return{content:"do not expose"};});const promise=expect(judgeChatComplete(context(),client(),"ward_chat","fixture",[])).rejects.toThrow("expired");await vi.runAllTimersAsync();await promise;});
+});

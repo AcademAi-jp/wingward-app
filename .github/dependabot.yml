@@ -1,0 +1,19 @@
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: "/"
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    # Do not propose a version until it has been on the registry for 7 days.
+    # Registry compromises are usually caught and yanked within hours, so the
+    # delay removes almost all of the exposure window. Mirrors the
+    # minimumReleaseAge setting in pnpm-workspace.yaml.
+    cooldown:
+      default-days: 7
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 7

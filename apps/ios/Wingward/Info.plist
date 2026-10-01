@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>API_BASE_URL</key>
+	<string>$(API_BASE_URL)</string>
+	<key>CFBundleDisplayName</key>
+	<string>Wingward</string>
+	<key>CFBundleExecutable</key>
+	<string>$(EXECUTABLE_NAME)</string>
+	<key>CFBundleIdentifier</key>
+	<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
+	<key>CFBundleInfoDictionaryVersion</key>
+	<string>6.0</string>
+	<key>CFBundleName</key>
+	<string>$(PRODUCT_NAME)</string>
+	<key>CFBundlePackageType</key>
+	<string>APPL</string>
+	<key>CFBundleShortVersionString</key>
+	<string>1.0</string>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLName</key>
+			<string>com.wingward.auth</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>wingward</string>
+			</array>
+		</dict>
+	</array>
+	<key>CFBundleVersion</key>
+	<string>1</string>
+	<key>LSRequiresIPhoneOS</key>
+	<true/>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Wingward uses the microphone for your voice interview when you choose to start one.</string>
+	<key>REVENUECAT_PUBLIC_KEY</key>
+	<string>$(REVENUECAT_PUBLIC_KEY)</string>
+	<key>SUPABASE_PUBLISHABLE_KEY</key>
+	<string>$(SUPABASE_PUBLISHABLE_KEY)</string>
+	<key>SUPABASE_URL</key>
+	<string>$(SUPABASE_URL)</string>
+	<key>UILaunchScreen</key>
+	<dict/>
+	<key>WINGWARD_DEMO_JUDGE_MATCHING</key>
+	<string>$(WINGWARD_DEMO_JUDGE_MATCHING)</string>
+	<key>WINGWARD_RECORDING_REHEARSAL_MATCHING</key>
+	<string>$(WINGWARD_RECORDING_REHEARSAL_MATCHING)</string>
+	<key>WINGWARD_NATIVE_VOICE_BOOTSTRAP</key>
+	<string>$(WINGWARD_NATIVE_VOICE_BOOTSTRAP)</string>
+	<key>WINGWARD_NATIVE_VOICE_ENABLED</key>
+	<string>$(WINGWARD_NATIVE_VOICE_ENABLED)</string>
+	<key>WINGWARD_REVENUECAT_ENABLED</key>
+	<string>$(WINGWARD_REVENUECAT_ENABLED)</string>
+	<key>WINGWARD_REVENUECAT_TEST_STORE</key>
+	<string>$(WINGWARD_REVENUECAT_TEST_STORE)</string>
+</dict>
+</plist>

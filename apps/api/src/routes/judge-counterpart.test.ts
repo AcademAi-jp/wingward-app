@@ -1,0 +1,28 @@
+import { Hono } from "hono";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import type { Env } from "../env";
+const ACTOR="11111111-1111-4111-8111-111111111111", PEER="22222222-2222-4222-8222-222222222222", MATCH="33333333-3333-4333-8333-333333333333", ROOM="44444444-4444-4444-8444-444444444444", KEY="55555555-5555-4555-8555-555555555555";
+const mocks=vi.hoisted(()=>({rpc:vi.fn(),refresh:vi.fn(),state:vi.fn()}));
+vi.mock("../db/client",()=>({getSupabaseClient:()=>({rpc:mocks.rpc})}));
+vi.mock("../middleware/auth",()=>({requireAuth:async(c:import('hono').Context,next:()=>Promise<void>)=>{if(c.req.header("Authorization")!=="Bearer owner")return c.json({},401);c.set("user_id",c.req.header("x-test-user")??"11111111-1111-4111-8111-111111111111");await next();},requireAgeVerified:async(_c:unknown,next:()=>Promise<void>)=>next()}));
+vi.mock("../services/chat-meetup",()=>({refreshChatMeetupAvailableTimes:(...a:unknown[])=>mocks.refresh(...a),getChatMeetupState:(...a:unknown[])=>mocks.state(...a)}));
+import counterpart from "./judge-counterpart";
+const env={JUDGE_ACCESS_ENABLED:"enabled",JUDGE_ACCESS_COHORT:["shipaton", "20261001"].join("-"),JUDGE_ACCESS_ISSUED_AT:"2026-09-30T18:00:00Z",JUDGE_ACCESS_EXPIRES_AT:"2026-10-13T19:00:00Z",JUDGE_ACCESS_AI_EXPIRES_AT:"2026-10-01T00:00:00Z",CHAT_MEETUP_ENABLED:"enabled"};
+const access={actorId:ACTOR,counterpartId:PEER,accountKind:"judge" as const,expiresAtMs:Date.parse(env.JUDGE_ACCESS_EXPIRES_AT)};
+const member={outcome:"allowed",actor_user_id:ACTOR,counterpart_user_id:PEER,account_kind:"judge",expires_at:env.JUDGE_ACCESS_EXPIRES_AT};
+const success={outcome:"ok",match_id:MATCH,room_id:ROOM,meetup_id:null,status:"idle",revision:0};
+const input={match_id:MATCH,operation:"accept",expected_revision:0,idempotency_key:KEY};
+function app(context=true){const a=new Hono<Env>();a.use('*',async(c,next)=>{if(context)c.set('judge_access',access);await next();});a.route('/api/judge',counterpart);return a;}
+const request=(body:unknown=input,context=true,headers={})=>app(context).request('/api/judge/counterpart/advance',{method:'POST',headers:{Authorization:'Bearer owner','Content-Type':'application/json',...headers},body:JSON.stringify(body)},env);
+beforeEach(()=>{vi.clearAllMocks();mocks.rpc.mockImplementation(async(name:string)=>({data:[name==='check_judge_access'?member:success],error:null}));mocks.refresh.mockResolvedValue(null);mocks.state.mockResolvedValue({ok:true,state:{status:'time_proposed',revision:7}});});
+describe('judge registry-only counterpart advance',()=>{
+ it('requires authenticated owner and trusted judge context before RPC',async()=>{expect((await request(input,true,{Authorization:''})).status).toBe(401);expect((await request(input,false)).status).toBe(403);expect((await request(input,true,{'x-test-user':PEER})).status).toBe(403);expect(mocks.rpc).not.toHaveBeenCalled();});
+ it.each([{...input,peer_id:PEER},{...input,operation:'admin'},{...input,expected_revision:-1},{...input,expected_revision:1.5},{...input,match_id:'bad'},{...input,idempotency_key:'bad'},{...input,extra:'x'.repeat(2500)}])('validates strict bounded input before RPC',async body=>{expect((await request(body)).status).toBe(400);expect(mocks.rpc).not.toHaveBeenCalled();});
+ it('uses fresh registry and DB-owned counterpart, never client supplied identity',async()=>{const r=await request();expect(r.status).toBe(200);expect(await r.json()).toEqual({data:success});expect(mocks.rpc).toHaveBeenCalledWith('advance_judge_counterpart',{p_user_id:ACTOR,p_match_id:MATCH,p_operation:'accept',p_expected_revision:0,p_idempotency_key:KEY});expect(mocks.rpc.mock.calls.map(a=>a[0])).toEqual(['check_judge_access','advance_judge_counterpart','check_judge_access']);});
+ it('rejects changed registry peer before mutation',async()=>{mocks.rpc.mockResolvedValue({data:[{...member,counterpart_user_id:ROOM}],error:null});expect((await request()).status).toBe(403);expect(mocks.rpc).toHaveBeenCalledTimes(1);});
+ it.each(['denied','expired','not_found','invalid_input','invalid_state','stale_revision','idempotency_conflict','identity_verification_required','expired_candidate'])('maps %s safely without retries',async outcome=>{mocks.rpc.mockImplementation(async(name:string)=>({data:[name==='check_judge_access'?member:{...success,outcome}],error:null}));const r=await request();expect(r.status).toBeGreaterThanOrEqual(400);expect(await r.text()).not.toContain('PRIVATE-CANARY');expect(mocks.rpc).toHaveBeenCalledTimes(2);});
+ it('returns latest revision after ordinary availability scheduling and quota admission',async()=>{const r=await request({...input,operation:'availability'});expect(r.status).toBe(200);expect(await r.json()).toEqual({data:{...success,status:'time_proposed',revision:7}});expect(mocks.refresh).toHaveBeenCalledWith(expect.anything(),ROOM,ACTOR);});
+ it('preserves Test Store quota denial after counterpart availability',async()=>{mocks.refresh.mockResolvedValue('quota_exhausted');expect((await request({...input,operation:'availability'})).status).toBe(402);});
+ it.each([{...success,match_id:PEER},{...success,revision:-1},{...success,room_id:null}])('never returns a mismatched or malformed success',async row=>{mocks.rpc.mockImplementation(async(name:string)=>({data:[name==='check_judge_access'?member:row],error:null}));expect((await request()).status).toBe(503);});
+ it('does not expose DB exception detail',async()=>{mocks.rpc.mockImplementation(async(name:string)=>{if(name==='check_judge_access')return{data:[member],error:null};throw Error('PRIVATE-CANARY');});const r=await request();expect(r.status).toBe(503);expect(await r.text()).not.toContain('PRIVATE-CANARY');});
+});

@@ -1,0 +1,120 @@
+name = "wingfox"
+main = "src/index.ts"
+compatibility_date = "2024-12-30"
+compatibility_flags = ["nodejs_compat"]
+
+# The registered-account iOS test app reaches this Worker through the existing
+# workers.dev hostname. Keep that route on the next Wrangler deployment.
+# The API still requires authenticated, account-scoped access; the recording
+# rehearsal gate further limits the temporary three-account demonstration.
+# This is the existing test-only Worker, not approval for a general-user release.
+#
+# Do not mention the trigger table name in square brackets above its real table:
+# daily-batch-cron-wiring.test.ts locates the actual section by plain indexOf.
+workers_dev = true
+
+# Confirmed ElevenLabs voice configuration. These identifiers are not secrets.
+# Model IDs are readiness checks only; the Agent owns its actual TTS model.
+# API keys and Agent IDs continue to come from operator-managed secrets.
+[vars]
+OPENAI_REALTIME_ENABLED = "enabled"
+ELEVENLABS_VOICE_ID_JA = "dhGvgIx0X6G3xzSWqOye"
+ELEVENLABS_VOICE_ID_EN = "s3TPKV1kjDlVtZbl4Ksh"
+ELEVENLABS_MODEL_ID_JA = "eleven_v3_conversational"
+ELEVENLABS_MODEL_ID_EN = "eleven_v3_conversational"
+
+[observability]
+enabled = true
+head_sampling_rate = 1
+
+# Cost containment on the Workers Paid plan. Cloudflare has NO hard spend cap —
+# budget alerts are email only and explicitly "do not cap your usage" — so this
+# is the one mechanism that actually stops runaway consumption, and it stops it
+# per invocation rather than per bill.
+#
+# Both numbers sit well above the measured worst cases and well below anything
+# that could produce a surprising invoice. Worst cases, recounted after the
+# block revalidation added 2 subrequests per send
+# (step-04-notifications.md §4-b): daily batch 6 + 2M subrequests; deferred
+# executor 1 + 4 * 10 = 41 on the adversarial path (8-10 per row, limit 4);
+# fox-conversation DO alarm 27 (rounds) / 33 (scoring) / 26 (N-01 notify).
+# Paid defaults are 10,000 subrequests and 30s CPU; these are guardrails
+# against a retry loop, not a limit the app is expected to approach.
+#
+# Recount before adjusting either, and do not trust these figures without
+# rechecking: every recount in this repo so far has moved them.
+#
+# `subrequests` is derived from the daily batch, which is the only path whose
+# cost GROWS: 6 + 2M for M matches created. 2000 therefore supports M <= 997,
+# i.e. ~1994 eligible users at maxPerUser = 1 — far past anything this app
+# will see before the hackathon deadline. It was 200 for one commit, which
+# would have cut the batch off at M = 98: `executeDailyMatching` bulk-inserts
+# every `matches` row BEFORE creating each one's feature scores and
+# `daily_match_pairs`, so a mid-loop cutoff leaves later matches with no daily
+# pair while `existingSet` still excludes those users from future batches
+# (Codex P1, PR #31 review round 6). A guardrail against cost damage that
+# causes data damage instead is worse than no guardrail.
+#
+# The real fix past M = 997 is to chunk the batch across invocations, the way
+# the fox-conversation DO already chunks rounds — recorded in ai/tasks.md
+# rather than built now, because the limit above is not the binding constraint
+# at this app's size and pretending otherwise would be the same mistake in the
+# other direction.
+#
+# `subrequests` IS a supported key here, alongside `cpu_ms` — see the
+# 2026-02-11 changelog and the Wrangler limits documentation. What it cannot
+# do is raise an entitlement: the free-account maximum for this key is 50, so
+# on Free it can only lower the ceiling, never lift it. This account is on
+# Workers Paid (user, 2026-08-20), where the maximum is 10,000,000.
+[limits]
+cpu_ms = 60000
+subrequests = 2000
+
+[assets]
+directory = "./public"
+not_found_handling = "single-page-application"
+run_worker_first = ["/api/*"]
+
+[triggers]
+# Two separate schedules, routed by `event.cron` in services/daily-batch.ts.
+# These strings must match DAILY_BATCH_CRON / DEFERRED_SEND_CRON there exactly:
+# Cloudflare hands `scheduled` the raw expression it was configured with and
+# the handler compares by string equality, so a whitespace difference routes
+# to no job at all. `daily-batch-cron-wiring.test.ts` fails the build on drift.
+#
+#   "0 0 * * *"      daily matching batch, 00:00 UTC = 09:00 JST (source only; rollout approval required)
+#   "*/15 * * * *"   deferred-notification executor (quiet-hours holds)
+#
+# ENABLED on 2026-08-20, deliberately, as the second half of the plan upgrade.
+# These were commented out while the account was on Workers Free, whose 10 ms
+# CPU ceiling the daily batch's all-pairs matching loop cannot meet, and a test
+# enforced that state so a comment was not the only thing standing between a
+# routine `wrangler deploy` and a batch that terminates mid-run. The account
+# moved to Workers Paid (user, 2026-08-20) — 10,000 subrequests and 15 minutes
+# of CPU per cron invocation — so the reason for the gate is gone.
+#
+# Leaving them off was not neutral once the plan changed: `sendNotification`
+# returns a successful `deferred` outcome for anything created during a user's
+# quiet hours and relies entirely on `sendDeferredNotifications`, which only
+# `handleScheduled` calls. With no schedule, every quiet-hours notification
+# would sit unsent indefinitely (Codex P1, PR #31 review round 3).
+#
+# See step-04-notifications.md §4-b for the budget recount behind the
+# frequencies.
+crons = ["0 0 * * *", "*/15 * * * *"]
+
+[[durable_objects.bindings]]
+name = "FOX_CONVERSATION"
+class_name = "FoxConversationDO"
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["FoxConversationDO"]
+
+[[durable_objects.bindings]]
+name = "JUDGE_REALTIME_CALLS"
+class_name = "JudgeRealtimeCall"
+
+[[migrations]]
+tag = "v2-judge-realtime-call"
+new_sqlite_classes = ["JudgeRealtimeCall"]

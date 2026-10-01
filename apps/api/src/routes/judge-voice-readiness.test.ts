@@ -1,0 +1,39 @@
+import { Hono } from "hono";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import type { Env } from "../env";
+const state=vi.hoisted(()=>({rpc:vi.fn(),dispatch:vi.fn(),stop:vi.fn()}));
+vi.mock("../db/client",()=>({getSupabaseClient:()=>({rpc:state.rpc})}));
+vi.mock("./judge-realtime",async()=>({...await vi.importActual("./judge-realtime"),dispatchJudgeVoice:state.dispatch,stopJudgeVoice:state.stop}));
+import route,{VOICE_READINESS_SESSION,VOICE_READINESS_RECHECK_SESSION,VOICE_READINESS_DOCUMENT} from "./judge-voice-readiness";
+import {JUDGE_SEVEN_OWNER_PROFILE_IDS,JUDGE_20261001_PROFILE_IDS} from "../services/synthetic-matching-cohort";
+const issued=Date.parse("2026-10-01T13:00:00Z"),end="2026-10-13T19:00:00Z",peer="22222222-2222-4222-8222-222222222222";
+const env={JUDGE_ACCESS_ENABLED:"enabled",JUDGE_ACCESS_COHORT:["shipaton","20261001"].join("-"),JUDGE_ACCESS_ISSUED_AT:"2026-10-01T13:00:00Z",JUDGE_ACCESS_EXPIRES_AT:end,JUDGE_ACCESS_AI_EXPIRES_AT:"2026-10-01T00:00:00Z",JUDGE_ACCESS_OWNER_AI_EXPIRES_AT:end,OPENAI_REALTIME_ENABLED:"enabled",JUDGE_REALTIME_CALLS:{}};
+let actor=JUDGE_SEVEN_OWNER_PROFILE_IDS[0] as string,kind="owner",context=true;
+function probe(body:unknown={sdp:"v=0\r\nsynthetic SDP",voice:"marin"},stop=false,bindings:unknown=env,get=false,repair=false){const app=new Hono<Env>();app.use("*",async(c,next)=>{c.set("user_id",actor);if(context)c.set("judge_access",{actorId:actor,accountKind:kind as "owner",counterpartId:peer,expiresAtMs:Date.parse(end)});await next();});app.route("/api/judge",route);return app.request("/api/judge/readiness/"+(repair?"voice-recheck":"voice")+(stop?"/stop":""),{method:get?"GET":"POST",...(get?{}:{body:JSON.stringify(body)})},bindings as Env["Bindings"]);}
+beforeEach(()=>{vi.useFakeTimers();vi.setSystemTime(issued+60000);vi.clearAllMocks();actor=JUDGE_SEVEN_OWNER_PROFILE_IDS[0];kind="owner";context=true;state.rpc.mockResolvedValue({data:[{outcome:"allowed",actor_user_id:actor,account_kind:kind,counterpart_user_id:peer,expires_at:end}],error:null});state.dispatch.mockResolvedValue(Response.json({data:{sdp:"v=0",max_duration_seconds:45}},{status:201}));state.stop.mockResolvedValue(Response.json({data:{closed:true}}));});
+afterEach(()=>{vi.useRealTimers();vi.unstubAllGlobals();});
+describe("fixed synthetic voice diagnostic",()=>{
+ it("reads only fixed owner lease facts and fixed OpenAI model without billable operations",async()=>{
+  const fetcher=vi.fn().mockResolvedValue(new Response(JSON.stringify({id:"gpt-realtime-2.1-mini",private:"canary"})));vi.stubGlobal("fetch",fetcher);
+  const internal=vi.fn().mockResolvedValue(Response.json({leaseExists:true,status:"closing",providerCreated:false,settled:false,callId:"private canary"}));
+  const bindings={...env,OPENAI_API_KEY:"x",JUDGE_REALTIME_CALLS:{idFromName:(v:string)=>v,get:()=>({fetch:internal})}};
+  const r=await probe(undefined,false,bindings,true);expect(r.status).toBe(200);expect(await r.json()).toEqual({data:{lease:{leaseExists:true,status:"closing",providerCreated:false,settled:false,closeReason:null},model:{connected:true,providerStatus:200}}});
+  expect(state.dispatch).not.toHaveBeenCalled();expect(state.stop).not.toHaveBeenCalled();expect(fetcher).toHaveBeenCalledOnce();expect(fetcher.mock.calls[0][0]).toBe("https://api.openai.com/v1/models/gpt-realtime-2.1-mini");expect(fetcher.mock.calls[0][1].redirect).toBe("manual");
+  actor=JUDGE_SEVEN_OWNER_PROFILE_IDS[1];expect((await probe(undefined,false,bindings,true)).status).toBe(403);expect(fetcher).toHaveBeenCalledOnce();
+ });
+ it("closes GET diagnostics at thirty minutes before internal or vendor access",async()=>{vi.setSystemTime(issued+1800000);const fetcher=vi.fn();vi.stubGlobal("fetch",fetcher);expect((await probe(undefined,false,env,true)).status).toBe(410);expect(state.rpc).not.toHaveBeenCalled();expect(fetcher).not.toHaveBeenCalled();});
+ it("uses a second fixed repair context with identical access and lease controls",async()=>{actor=JUDGE_SEVEN_OWNER_PROFILE_IDS[1];state.rpc.mockResolvedValue({data:[{outcome:"allowed",actor_user_id:actor,account_kind:kind,counterpart_user_id:peer,expires_at:end}],error:null});expect((await probe(undefined,false,env,false,true)).status).toBe(201);expect(state.dispatch.mock.calls[0][1]).toBe(VOICE_READINESS_RECHECK_SESSION);expect((await probe({},true,env,false,true)).status).toBe(200);expect(state.stop.mock.calls[0][1]).toBe(VOICE_READINESS_RECHECK_SESSION);actor=JUDGE_SEVEN_OWNER_PROFILE_IDS[0];expect((await probe(undefined,false,env,false,true)).status).toBe(403);expect(state.dispatch).toHaveBeenCalledOnce();});
+ it("refuses the other owner's stop route without stopping any call",async()=>{
+  expect((await probe({},true,env,false,true)).status).toBe(403);expect(state.stop).not.toHaveBeenCalled();actor=JUDGE_SEVEN_OWNER_PROFILE_IDS[1];expect((await probe({},true)).status).toBe(403);expect(state.stop).not.toHaveBeenCalled();
+ });
+ it("uses the existing durable voice path with fixed session, content, voice and shortened deadline",async()=>{expect((await probe()).status).toBe(201);expect(state.rpc).toHaveBeenCalledOnce();expect(state.dispatch.mock.calls[0].slice(1)).toEqual([VOICE_READINESS_SESSION,"interview",{sdp:"v=0\r\nsynthetic SDP",voice:"marin",language:"en",personaDocument:VOICE_READINESS_DOCUMENT},issued+105000]);});
+ it.each([JUDGE_SEVEN_OWNER_PROFILE_IDS[1],JUDGE_20261001_PROFILE_IDS[0],peer])("refuses all other actors %s",async id=>{actor=id;expect((await probe()).status).toBe(403);expect(state.dispatch).not.toHaveBeenCalled();expect(state.rpc).not.toHaveBeenCalled();});
+ it("refuses missing context and wrong kind",async()=>{context=false;expect((await probe()).status).toBe(403);context=true;kind="qa";expect((await probe()).status).toBe(403);expect(state.dispatch).not.toHaveBeenCalled();});
+ it("requires fresh membership before a voice reservation",async()=>{state.rpc.mockResolvedValue({data:[{outcome:"denied"}],error:null});expect((await probe()).status).toBe(403);expect(state.dispatch).not.toHaveBeenCalled();});
+ it.each([{sdp:"v=0",voice:"ash"},{sdp:"invalid",voice:"marin"},{sdp:"v=0",voice:"marin",instructions:"private input"},{sdp:"v=0"+"x".repeat(70000),voice:"marin"}])("rejects client customization or oversized input",async body=>{expect((await probe(body)).status).toBe(400);expect(state.dispatch).not.toHaveBeenCalled();expect(state.rpc).not.toHaveBeenCalled();});
+ it("closes exactly at 30 minutes without reserving",async()=>{vi.setSystemTime(issued+1800000);expect((await probe()).status).toBe(410);expect(state.dispatch).not.toHaveBeenCalled();expect(state.rpc).not.toHaveBeenCalled();});
+ it("refuses starts in the last sixty seconds before any reservation",async()=>{vi.setSystemTime(issued+1740000);expect((await probe()).status).toBe(410);expect(state.dispatch).not.toHaveBeenCalled();expect(state.rpc).not.toHaveBeenCalled();});
+ it("rechecks the window after DB access",async()=>{state.rpc.mockImplementation(async()=>{vi.setSystemTime(issued+1800000);return {data:[{outcome:"allowed",actor_user_id:actor,account_kind:kind,counterpart_user_id:peer,expires_at:end}],error:null};});expect((await probe()).status).toBe(403);expect(state.dispatch).not.toHaveBeenCalled();});
+ it("keeps cleanup available after start window closes only for the fixed owner",async()=>{vi.setSystemTime(issued+1800000);expect((await probe({},true)).status).toBe(200);expect(state.stop.mock.calls[0].slice(1)).toEqual([VOICE_READINESS_SESSION,"interview"]);actor=peer;expect((await probe({},true)).status).toBe(403);expect(state.stop).toHaveBeenCalledOnce();});
+ it("requires the feature and namespace",async()=>{expect((await probe(undefined,false,{...env,OPENAI_REALTIME_ENABLED:"disabled"})).status).toBe(403);expect((await probe(undefined,false,{...env,JUDGE_REALTIME_CALLS:undefined})).status).toBe(403);expect(state.dispatch).not.toHaveBeenCalled();});
+});

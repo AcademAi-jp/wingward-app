@@ -1,0 +1,28 @@
+packages:
+  - 'apps/*'
+
+# --- Supply-chain hardening ---------------------------------------------
+# These settings live here rather than in package.json's "pnpm" field
+# because pnpm reads settings from pnpm-workspace.yaml. They require
+# pnpm >= 10.26 (see .mise.toml and the packageManager fields).
+
+# Wait 7 days before installing a newly published version. Most registry
+# compromises are detected and pulled within hours, so the delay removes
+# almost all of the exposure window.
+minimumReleaseAge: 10080
+
+# Refuse transitive dependencies resolved from anything other than the
+# registry (git, tarball URLs, and similar).
+blockExoticSubdeps: true
+
+# A package update must not be able to downgrade these security settings.
+trustPolicy: no-downgrade
+
+# Only these packages may run install/build scripts. Everything else is
+# installed with its lifecycle scripts blocked.
+onlyBuiltDependencies:
+  - '@biomejs/biome'
+  - '@tailwindcss/oxide'
+  - esbuild
+  - sharp
+  - workerd

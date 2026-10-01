@@ -1,0 +1,13 @@
+// Public client settings for the hosted judging app. Never put server secrets here.
+API_BASE_URL = https:/$()/wingfox.hunaanalysis.workers.dev
+SUPABASE_URL = https:/$()/udxadngojyxmoqircfrd.supabase.co
+SUPABASE_PUBLISHABLE_KEY = sb_publishable_WuWuMdUpexUgzv_euvBLQA_YDXzPcfP
+REVENUECAT_PUBLIC_KEY = test_SBQZypZbRDHnsFWCrlIFZRddnrI
+WINGWARD_DEMO_JUDGE_MATCHING = YES
+WINGWARD_RECORDING_REHEARSAL_MATCHING = NO
+WINGWARD_NATIVE_VOICE_ENABLED = YES
+WINGWARD_NATIVE_VOICE_BOOTSTRAP = openAIRealtime
+WINGWARD_REVENUECAT_ENABLED = YES
+WINGWARD_REVENUECAT_TEST_STORE = YES
+
+#include? "Local.xcconfig"
