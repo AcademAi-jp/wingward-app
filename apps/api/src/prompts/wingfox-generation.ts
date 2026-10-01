@@ -22,7 +22,7 @@ ${profileJson}
 ${conversationExcerpts}
 
 ## Output
-Output only the body text of the "${sectionTitle}" section. Do not include headings (##).`;
+Output only the body text of the "${sectionTitle}" section. Do not include headings (##). Keep this section concise: at most 120 words, and finish every sentence.`;
 	}
 
 	return `あなたはユーザーのウィングフォックス（AIペルソナ）用のドキュメントを書くアシスタントです。
@@ -41,7 +41,7 @@ ${profileJson}
 ${conversationExcerpts}
 
 ## 出力
-「${sectionTitle}」セクションの本文のみを出力してください。見出し（##）は含めないでください。`;
+「${sectionTitle}」セクションの本文のみを出力してください。見出し（##）は含めないでください。本文は300文字以内で簡潔にまとめ、文を最後まで書き切ってください。`;
 }
 
 export function getConstraintsContent(lang: "ja" | "en" = "ja"): string {

@@ -1009,7 +1009,8 @@ profiles.post("/me/confirm", requireAuth, async (c) => {
 		return jsonError(c, "FORBIDDEN", "Profile confirmation unavailable");
 	}
 	const recordingConfig = c.get("recording_rehearsal");
-	const recordingBindingsPresent = hasRecordingRehearsalConfig(c.env);
+	// A validated judge session uses its own admission, not stale recording bindings.
+	const recordingBindingsPresent = hasRecordingRehearsalConfig(c.env) && (!judgeAccess || !!recordingConfig);
 	if (recordingBindingsPresent) {
 		const envConfig = readRecordingRehearsalConfig(c.env);
 		if (

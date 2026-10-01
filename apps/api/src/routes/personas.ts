@@ -192,7 +192,7 @@ personas.post("/wingfox/generate", requireAuth, async (c) => {
 		}
 		let content: string;
 		try {
-			content = await judgeChatComplete(c, supabase, "ward_generate", apiKey, [{ role: "user", content: prompt }], { model: MISTRAL_LARGE, maxTokens: 500 });
+			content = await judgeChatComplete(c, supabase, "ward_generate", apiKey, [{ role: "user", content: prompt }], { model: MISTRAL_LARGE, maxTokens: 1500 });
 		} catch (error) {
 			return generationError(c, "wingfox_model", WINGFOX_AI_UNAVAILABLE_MESSAGE, error);
 		}
