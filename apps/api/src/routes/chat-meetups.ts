@@ -11,6 +11,8 @@ const chatMeetups = new Hono<Env>();
 const ROOM_ID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 /** Keep trusted admission context; cafe settings cannot enable this future feature. */
 function providersForRequest(c: Context<Env>): ChatMeetupProviders | undefined {
+  const judgeAccess = c.get("judge_access");
+  if (judgeAccess) return { cafe: unavailableCafeSearchProvider, judgeAccess };
   const config = c.get("recording_rehearsal");
   return config ? { cafe: unavailableCafeSearchProvider, recordingRehearsalConfig: config } : undefined;
 }
@@ -52,7 +54,7 @@ async function judgeMetadata(c: Context<Env>, roomId: string): Promise<{ simulat
   const judge = c.get("judge_access");
   if (!judge) return null;
   if (!isJudgeAccessActive(judge) || judge.actorId !== c.get("user_id")) return false;
-  const access = await checkChatMeetupRoomAccess(getSupabaseClient(c.env), roomId, judge.actorId);
+  const access = await checkChatMeetupRoomAccess(getSupabaseClient(c.env), roomId, judge.actorId, undefined, judge);
   if (!access.ok || !isJudgeAccessActive(judge)) return false;
   const peer = access.context.userA === judge.actorId ? access.context.userB : access.context.userA;
   return peer === judge.counterpartId ? { simulated_counterpart: true, judge_match_id: access.context.matchId } : false;

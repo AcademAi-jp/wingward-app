@@ -219,6 +219,17 @@ final class BilingualReferenceJourneyTests: XCTestCase {
     XCTAssertEqual(bilingualProductionActiveDirectChat(for: matchID, in: [room]), room)
   }
 
+  func testJudgeMeetupUsesChatPlanningOnlyAfterServerRoomIsActive() {
+    XCTAssertNil(bilingualProductionMeetupDestination(simulatedCounterpart: true, hasActiveDirectChat: false))
+    XCTAssertEqual(bilingualProductionMeetupDestination(simulatedCounterpart: true, hasActiveDirectChat: true), .directChats)
+  }
+
+  func testOrdinaryMeetupKeepsExistingDestinationRegardlessOfChatAvailability() {
+    for hasActiveDirectChat in [false, true] {
+      XCTAssertEqual(bilingualProductionMeetupDestination(simulatedCounterpart: false, hasActiveDirectChat: hasActiveDirectChat), .meetup)
+    }
+  }
+
   func testPartnerComposerStartsWithAIAndUsesLocalizedModeCopy() {
     XCTAssertEqual(BilingualProductionPartnerConversationMode.allCases.first, .ward)
     XCTAssertEqual(

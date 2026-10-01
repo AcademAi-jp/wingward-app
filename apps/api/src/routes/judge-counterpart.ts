@@ -1,3 +1,4 @@
+import { unavailableCafeSearchProvider } from "../services/chat-meetup-providers";
 import { Hono } from "hono";
 import { z } from "zod";
 import type { Env } from "../env";
@@ -44,10 +45,10 @@ route.post("/counterpart/advance", requireAuth, requireAgeVerified, async c => {
     const result = output.safeParse(row);
     if (!result.success || result.data.match_id !== parsed.data.match_id || (parsed.data.operation === "accept" && !result.data.room_id)) return unavailable();
     if (parsed.data.operation === "availability" && result.data.room_id) {
-      const failure = await refreshChatMeetupAvailableTimes(db, result.data.room_id, actor);
+      const failure = await refreshChatMeetupAvailableTimes(db, result.data.room_id, actor, fresh);
       if (failure === "quota_exhausted") return jsonError(c, "PAYMENT_REQUIRED", "Meetup arrangement is unavailable");
       if (failure) return unavailable();
-      const state = await getChatMeetupState(db, result.data.room_id, actor, { enabled: c.env.CHAT_MEETUP_ENABLED === "enabled" });
+      const state = await getChatMeetupState(db, result.data.room_id, actor, { enabled: c.env.CHAT_MEETUP_ENABLED === "enabled", providers: { cafe: unavailableCafeSearchProvider, judgeAccess: fresh } });
       if (!state.ok) return unavailable();
       result.data.status = state.state.status; result.data.revision = state.state.revision;
     }
