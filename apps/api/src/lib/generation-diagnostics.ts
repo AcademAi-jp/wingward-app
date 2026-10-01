@@ -39,6 +39,19 @@ export function generationError(
 	error?: unknown,
 ) {
 	const upstreamStatus = readVerifiedUpstreamStatus(error);
+	// Fixed labels only: never disclose provider text or user content.
+	const known = new Map([
+		["Mistral API response was truncated", "output_truncated"],
+		["Mistral request exceeds the configured byte limit", "input_size"],
+		["Mistral request exceeds the reserved token limit", "input_units"],
+		["AI review budget unavailable", "request_allowance"],
+		["Mistral API returned an invalid response", "response_shape"],
+		["Mistral API returned an empty response", "empty_response"],
+	]);
+	if (error instanceof Error) {
+		const reason = known.get(error.message);
+		if (reason) console.error(`[wingward/generation] reason=${reason}`);
+	}
 	console.error(
 		upstreamStatus === undefined
 			? `[wingward/generation] stage=${stage}`
